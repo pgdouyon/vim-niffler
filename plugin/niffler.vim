@@ -25,6 +25,20 @@ function! s:OpenNifflerBuffer()
     setlocal bufhidden=wipe
     setlocal buflisted
     setlocal noswapfile
+    setlocal nospell
+    setlocal nofoldenable
+    setlocal noreadonly
+    setlocal nonumber
+    setlocal foldcolumn = 0
+    if exists("+cursorcolumn")
+        setlocal nocursorcolumn
+    endif
+    if exists("+colorcolumn")
+        setlocal colorcolumn = 0
+    endif
+    if exists("+relativenumber")
+        setlocal norelativenumber
+    endif
 endfunction
 
 let &cpoptions = s:save_cpo
