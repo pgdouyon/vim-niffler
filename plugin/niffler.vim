@@ -17,5 +17,15 @@ function! s:FindFiles()
     return files
 endfunction
 
+
+function! s:OpenNifflerBuffer()
+    noautocmd keepalt keepjumps edit "__Niffler__"
+    set filetype=niffler
+    setlocal buftype=nofile
+    setlocal bufhidden=wipe
+    setlocal buflisted
+    setlocal noswapfile
+endfunction
+
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
