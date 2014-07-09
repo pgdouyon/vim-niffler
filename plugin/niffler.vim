@@ -21,6 +21,7 @@ endfunction
 function! s:OpenNifflerBuffer(file_list)
     noautocmd keepalt keepjumps edit "__Niffler__"
     call s:SetNifflerOptions()
+    call s:SetNifflerMappings()
     call append(1, a:file_list)
 endfunction
 
@@ -46,6 +47,18 @@ function! s:SetNifflerOptions()
     if exists("+relativenumber")
         setlocal norelativenumber
     endif
+endfunction
+
+
+function! s:SetNifflerMappings()
+    nnoremap <buffer> gg 2G
+    nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
+    nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
+    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
+
+    inoremap <buffer> <C-L> <Space>
+    inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection()<CR>
+    inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection()<CR>
 endfunction
 
 let &cpoptions = s:save_cpo
