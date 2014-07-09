@@ -23,6 +23,9 @@ function! s:OpenNifflerBuffer(file_list)
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
     call s:SetNifflerAutocmds()
+
+    let prompt = "> "
+    call setline(1, prompt)
     call append(1, a:file_list)
 endfunction
 
@@ -68,6 +71,18 @@ function! s:SetNifflerAutocmds()
     autocmd BufEnter <buffer> set backspace=""
     autocmd BufLeave <buffer> execute "set backspace=" . old_bs
     autocmd CursorMoved <buffer> call s:RedrawPrompt()
+endfunction
+
+
+function! s:RedrawPrompt()
+    if line(".") == 1
+        let prompt = "> "
+        let line = getline(".")
+        if line !~ '\V\_^' . prompt
+            call append(0, prompt)
+            " TODO - should also repopulate file list
+        endif
+    endif
 endfunction
 
 let &cpoptions = s:save_cpo
