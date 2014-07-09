@@ -18,7 +18,7 @@ function! s:FindFiles()
 endfunction
 
 
-function! s:OpenNifflerBuffer()
+function! s:OpenNifflerBuffer(file_list)
     noautocmd keepalt keepjumps edit "__Niffler__"
     set filetype=niffler
     setlocal buftype=nofile
@@ -39,6 +39,7 @@ function! s:OpenNifflerBuffer()
     if exists("+relativenumber")
         setlocal norelativenumber
     endif
+    call append(1, a:file_list)
 endfunction
 
 let &cpoptions = s:save_cpo
