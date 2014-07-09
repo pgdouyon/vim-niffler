@@ -20,6 +20,12 @@ endfunction
 
 function! s:OpenNifflerBuffer(file_list)
     noautocmd keepalt keepjumps edit "__Niffler__"
+    call s:SetNifflerOptions()
+    call append(1, a:file_list)
+endfunction
+
+
+function! s:SetNifflerOptions()
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
@@ -29,6 +35,7 @@ function! s:OpenNifflerBuffer(file_list)
     setlocal nofoldenable
     setlocal noreadonly
     setlocal nonumber
+    setlocal nowrap
     setlocal foldcolumn = 0
     if exists("+cursorcolumn")
         setlocal nocursorcolumn
@@ -39,7 +46,6 @@ function! s:OpenNifflerBuffer(file_list)
     if exists("+relativenumber")
         setlocal norelativenumber
     endif
-    call append(1, a:file_list)
 endfunction
 
 let &cpoptions = s:save_cpo
