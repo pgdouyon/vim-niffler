@@ -6,6 +6,7 @@ let g:loaded_niffler = 1
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
+let s:prompt = "> "
 let s:find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2> /dev/null"
 
 function! s:FindFiles()
@@ -24,8 +25,7 @@ function! s:OpenNifflerBuffer(file_list)
     call s:SetNifflerMappings()
     call s:SetNifflerAutocmds()
 
-    let prompt = "> "
-    call setline(1, prompt)
+    call setline(1, s:prompt)
     call append(1, a:file_list)
 endfunction
 
@@ -91,12 +91,11 @@ endfunction
 
 
 function! s:RedrawPrompt()
-    let prompt = "> "
     let line = getline(1)
-    if line !~ '\V\_^' . prompt
+    if line !~ '\V\_^' . s:prompt
         let re = '\v\_^\s*\>\s*'
         let line = substitute(line, re, '', '')
-        call setline(1, prompt . line)
+        call setline(1, s:prompt . line)
         " TODO - should also repopulate file list
     endif
 endfunction
