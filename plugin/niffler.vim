@@ -65,7 +65,17 @@ endfunction
 
 
 function! s:SetNifflerAutocmds()
+    autocmd CursorMovedI <buffer> call <SID>OnCursorMovedI()
     autocmd TextChanged <buffer> call <SID>RedrawPrompt()
+endfunction
+
+
+function! s:OnCursorMovedI()
+    if line(".") != 1
+        call feedkeys("\e", "nt")
+    elseif col(".") < 3
+        call cursor(1, 3)
+    endif
 endfunction
 
 
