@@ -54,7 +54,7 @@ function! s:SetNifflerMappings()
     nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
     nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
 
-    inoremap <buffer> <C-L> <Space>
+    inoremap <buffer> <C-J> <Space>
     inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection()<CR>
     inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection()<CR>
 endfunction
