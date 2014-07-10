@@ -91,13 +91,13 @@ endfunction
 
 
 function! s:RedrawPrompt()
-    if line(".") == 1
-        let prompt = "> "
-        let line = getline(".")
-        if line !~ '\V\_^' . prompt
-            call append(0, prompt)
-            " TODO - should also repopulate file list
-        endif
+    let prompt = "> "
+    let line = getline(1)
+    if line !~ '\V\_^' . prompt
+        let re = '\v\_^\s*\>\s*'
+        let line = substitute(line, re, '', '')
+        call setline(1, prompt . line)
+        " TODO - should also repopulate file list
     endif
 endfunction
 
