@@ -65,7 +65,7 @@ endfunction
 
 
 function! s:SetNifflerAutocmds()
-    autocmd CursorMoved <buffer> call s:RedrawPrompt()
+    autocmd TextChanged <buffer> call <SID>RedrawPrompt()
 endfunction
 
 
