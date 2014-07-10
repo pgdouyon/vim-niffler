@@ -49,7 +49,6 @@ endfunction
 
 
 function! s:SetNifflerMappings()
-    nnoremap <buffer> gg 2G
     nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
     nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
     nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
