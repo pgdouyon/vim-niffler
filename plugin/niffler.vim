@@ -49,20 +49,22 @@ endfunction
 
 
 function! s:SetNifflerMappings()
-    nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
-    nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
-    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
+    let ins_del_cmds = ["<BS>", "<Del>", "<C-h>", "<C-w>", "<C-u>"]
+    for cmd in ins_del_cmds
+        execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd)
+    endfor
 
     inoremap <buffer> <C-J> <Space>
     inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection()<CR>
     inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection()<CR>
+
+    nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
+    nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
+    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
 endfunction
 
 
 function! s:SetNifflerAutocmds()
-    let old_bs = &backspace
-    autocmd BufEnter <buffer> set backspace=""
-    autocmd BufLeave <buffer> execute "set backspace=" . old_bs
     autocmd CursorMoved <buffer> call s:RedrawPrompt()
 endfunction
 
