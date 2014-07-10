@@ -34,14 +34,8 @@ function! s:SetNifflerOptions()
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
-    setlocal buflisted
-    setlocal noswapfile
-    setlocal nospell
-    setlocal nofoldenable
-    setlocal noreadonly
-    setlocal nonumber
-    setlocal nowrap
     setlocal foldcolumn = 0
+    setlocal buflisted noswapfile nospell nofoldenable noreadonly nonumber nowrap
     if exists("+cursorcolumn")
         setlocal nocursorcolumn
     endif
