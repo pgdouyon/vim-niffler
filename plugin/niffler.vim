@@ -20,7 +20,7 @@ endfunction
 
 
 function! s:OpenNifflerBuffer(file_list)
-    noautocmd keepalt keepjumps edit "__Niffler__"
+    keepjumps edit "__Niffler__"
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
     call s:SetNifflerAutocmds()
