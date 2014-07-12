@@ -25,6 +25,7 @@ function! s:OpenNifflerBuffer(file_list)
     call s:SetNifflerMappings()
     call s:SetNifflerAutocmds()
 
+    let b:niffler_file_list = a:file_list
     call setline(1, s:prompt)
     call append(1, a:file_list)
 endfunction
@@ -79,6 +80,17 @@ function! s:OnCursorMovedI()
     elseif cursor_out_of_bounds
         call cursor(1, 3)
     endif
+    call s:FilterCandidateList()
+endfunction
+
+
+function! s:FilterCandidateList()
+    let prompt_line = getline(1)
+    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
+    let fuzzy_filter = substitute(prompt, '\S', '[^&]{-}&', 'g')
+    execute '2,$delete'
+    call append(1, b:niffler_file_list)
+    execute '2,$vglobal/\v'.fuzzy_filter.'/delete'
 endfunction
 
 
