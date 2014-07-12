@@ -9,6 +9,15 @@ set cpoptions&vim
 let s:prompt = "> "
 let s:find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2> /dev/null"
 
+function! s:Niffler()
+    let file_list = s:FindFiles()
+    call s:OpenNifflerBuffer(file_list)
+    call s:SetNifflerOptions()
+    call s:SetNifflerMappings()
+    call s:SetNifflerAutocmds()
+endfunction
+
+
 function! s:FindFiles()
     if !executable("find")
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
@@ -21,9 +30,6 @@ endfunction
 
 function! s:OpenNifflerBuffer(file_list)
     keepjumps edit "__Niffler__"
-    call s:SetNifflerOptions()
-    call s:SetNifflerMappings()
-    call s:SetNifflerAutocmds()
 
     let b:niffler_file_list = a:file_list
     call setline(1, s:prompt)
