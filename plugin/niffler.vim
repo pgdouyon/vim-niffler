@@ -72,18 +72,22 @@ endfunction
 
 
 function! s:OnCursorMovedI()
-    if line(".") != 1
+    let is_prompt_line = (line(".") == 1)
+    let cursor_out_of_bounds = col(".") < 3
+    if !is_prompt_line
         call feedkeys("\e", "nt")
-    elseif col(".") < 3
+    elseif cursor_out_of_bounds
         call cursor(1, 3)
     endif
 endfunction
 
 
 function! s:OnInsertEnter()
-    if line(".") != 1
+    let is_prompt_line = (line(".") == 1)
+    let cursor_out_of_bounds = col(".") < 3
+    if !is_prompt_line
         call feedkeys("\e", "nt")
-    elseif col(".") < 3
+    elseif cursor_out_of_bounds
         let v:char = "move cursor"
         call cursor(1, 3)
     endif
