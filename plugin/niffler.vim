@@ -116,5 +116,18 @@ function! s:RedrawPrompt()
     endif
 endfunction
 
+
+function! s:OpenSelection()
+    let is_prompt_line = (line(".") == 1)
+    if is_prompt_line
+        call cursor(2, 1)
+    endif
+    let file = getline(".")
+    let file = substitute(file, '\v\_^\s*', '', '')
+    let file = substitute(file, '\v\s*$', '', '')
+    " TODO prepend filename with directory arg to find
+    execute "keepalt keepjumps edit " . file
+endfunction
+
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
