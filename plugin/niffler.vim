@@ -53,7 +53,7 @@ function! s:SetNifflerOptions()
         setlocal nocursorcolumn
     endif
     if exists("+colorcolumn")
-        setlocal colorcolumn = 0
+        setlocal colorcolumn=0
     endif
     if exists("+relativenumber")
         setlocal norelativenumber
