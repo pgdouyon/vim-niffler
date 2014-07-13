@@ -7,7 +7,6 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 let s:prompt = "> "
-let s:find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2> /dev/null"
 
 function! s:Niffler()
     let file_list = s:FindFiles()
@@ -21,8 +20,10 @@ endfunction
 function! s:FindFiles()
     if !executable("find")
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
+        return []
     endif
-    let find_result = system(s:find_cmd)
+    let find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2> /dev/null"
+    let find_result = system(find_cmd)
     let files = split(find_result, "\n")
     return files
 endfunction
