@@ -93,7 +93,6 @@ endfunction
 function! s:SetNifflerAutocmds()
     autocmd CursorMovedI <buffer> call <SID>OnCursorMovedI()
     autocmd InsertEnter <buffer> call <SID>OnInsertEnter()
-    autocmd TextChanged <buffer> call <SID>RedrawPrompt()
 endfunction
 
 
