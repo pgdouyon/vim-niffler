@@ -154,6 +154,7 @@ function! s:OnInsertEnter()
     endif
 endfunction
 
+command! -nargs=? -complete=dir Niffler call<SID>Niffler(<f-args>)
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
