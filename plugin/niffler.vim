@@ -59,7 +59,7 @@ endfunction
 function! s:SetNifflerMappings()
     let ins_del_cmds = ["<BS>", "<Del>", "<C-h>", "<C-w>", "<C-u>"]
     for cmd in ins_del_cmds
-        execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd)
+        execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd, cmd)
     endfor
 
     inoremap <buffer> <C-J> <Space>
