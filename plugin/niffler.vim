@@ -17,6 +17,7 @@ function! s:Niffler(...)
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
     call s:SetNifflerAutocmds()
+    let b:niffler_file_list = file_list
     let b:niffler_old_wd = old_wd
 endfunction
 
@@ -36,7 +37,6 @@ endfunction
 function! s:OpenNifflerBuffer(file_list)
     keepjumps edit "__Niffler__"
 
-    let b:niffler_file_list = a:file_list
     call setline(1, s:prompt)
     call append(1, a:file_list)
 endfunction
@@ -46,7 +46,7 @@ function! s:SetNifflerOptions()
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
-    setlocal foldcolumn = 0
+    setlocal foldcolumn=0
     setlocal buflisted noswapfile nospell nofoldenable noreadonly nonumber nowrap
     if exists("+cursorcolumn")
         setlocal nocursorcolumn
@@ -108,13 +108,17 @@ function! s:OnCursorMovedI()
 endfunction
 
 
+function! s:RedrawCandidateList()
+    execute '2,$delete'
+    call append(1, b:niffler_file_list)
+endfunction
+
+
 function! s:FilterCandidateList()
     let prompt_line = getline(1)
     let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
     let fuzzy_filter = substitute(prompt, '\S', '[^&]{-}&', 'g')
-    execute '2,$delete'
-    call append(1, b:niffler_file_list)
-    execute '2,$vglobal/\v'.fuzzy_filter.'/delete'
+    execute 'silent 2,$vglobal/\v'.fuzzy_filter.'/delete'
 endfunction
 
 
