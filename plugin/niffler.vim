@@ -108,6 +108,16 @@ function! s:OnCursorMovedI()
 endfunction
 
 
+function! s:RedrawPrompt()
+    let prompt_line = getline(1)
+    if prompt_line !~ '\V\_^' . s:prompt
+        let re = '\v\_^\s*\>\s*'
+        let prompt_line = substitute(prompt_line, re, '', '')
+        call setline(1, s:prompt . prompt_line)
+    endif
+endfunction
+
+
 function! s:RedrawCandidateList()
     execute '2,$delete'
     call append(1, b:niffler_file_list)
@@ -133,16 +143,6 @@ function! s:OnInsertEnter()
     endif
 endfunction
 
-
-function! s:RedrawPrompt()
-    let line = getline(1)
-    if line !~ '\V\_^' . s:prompt
-        let re = '\v\_^\s*\>\s*'
-        let line = substitute(line, re, '', '')
-        call setline(1, s:prompt . line)
-        " TODO - should also repopulate file list
-    endif
-endfunction
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
