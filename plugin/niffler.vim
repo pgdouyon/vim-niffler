@@ -72,6 +72,18 @@ function! s:SetNifflerMappings()
 endfunction
 
 
+function! s:OpenSelection()
+    let is_prompt_line = (line(".") == 1)
+    if is_prompt_line
+        call cursor(2, 1)
+    endif
+    let file = getline(".")
+    let file = substitute(file, '\v\_^\s*', '', '')
+    let file = substitute(file, '\v\s*$', '', '')
+    execute "keepalt keepjumps edit " . file
+endfunction
+
+
 function! s:SetNifflerAutocmds()
     autocmd CursorMovedI <buffer> call <SID>OnCursorMovedI()
     autocmd InsertEnter <buffer> call <SID>OnInsertEnter()
@@ -121,19 +133,6 @@ function! s:RedrawPrompt()
         call setline(1, s:prompt . line)
         " TODO - should also repopulate file list
     endif
-endfunction
-
-
-function! s:OpenSelection()
-    let is_prompt_line = (line(".") == 1)
-    if is_prompt_line
-        call cursor(2, 1)
-    endif
-    let file = getline(".")
-    let file = substitute(file, '\v\_^\s*', '', '')
-    let file = substitute(file, '\v\s*$', '', '')
-    " TODO prepend filename with directory arg to find
-    execute "keepalt keepjumps edit " . file
 endfunction
 
 let &cpoptions = s:save_cpo
