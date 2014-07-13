@@ -8,12 +8,16 @@ set cpoptions&vim
 
 let s:prompt = "> "
 
-function! s:Niffler()
+function! s:Niffler(...)
+    let old_wd = getcwd()
+    let dir = (a:0 ? a:1 : "~")
+    execute "lchdir! ".dir
     let file_list = s:FindFiles()
     call s:OpenNifflerBuffer(file_list)
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
     call s:SetNifflerAutocmds()
+    let b:niffler_old_wd = old_wd
 endfunction
 
 
@@ -80,7 +84,8 @@ function! s:OpenSelection()
     let file = getline(".")
     let file = substitute(file, '\v\_^\s*', '', '')
     let file = substitute(file, '\v\s*$', '', '')
-    execute "keepalt keepjumps edit " . file
+    execute "keepalt keepjumps edit ".file
+    execute "lchdir! ".b:niffler_old_wd
 endfunction
 
 
