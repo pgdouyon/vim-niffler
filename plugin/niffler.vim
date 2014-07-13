@@ -19,6 +19,7 @@ function! s:Niffler(...)
     call s:SetNifflerAutocmds()
     let b:niffler_file_list = file_list
     let b:niffler_old_wd = old_wd
+    let b:niffler_prompt = ""
 endfunction
 
 
@@ -104,6 +105,17 @@ function! s:OnCursorMovedI()
     elseif cursor_out_of_bounds
         call cursor(1, 3)
     endif
+    let prompt_changed = (b:niffler_prompt !=# getline(1))
+    if prompt_changed
+        let b:niffler_prompt = getline(1)
+        call s:RedrawScreen()
+    endif
+endfunction
+
+
+function! s:RedrawScreen()
+    call s:RedrawPrompt()
+    call s:RedrawCandidateList()
     call s:FilterCandidateList()
 endfunction
 
