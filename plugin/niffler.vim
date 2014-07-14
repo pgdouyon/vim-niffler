@@ -140,7 +140,8 @@ function! s:FilterCandidateList()
         let filter_cmd = "find * -path '*/\.*' -prune -o -path '".filter_regex."*' -print 2>/dev/null"
         let filter_result = system(filter_cmd)
         let files = split(filter_result, "\n")
-        execute '2,$delete'
+        execute '1,$delete'
+        call append(0, prompt_line)
         call append(1, files)
     endif
 endfunction
