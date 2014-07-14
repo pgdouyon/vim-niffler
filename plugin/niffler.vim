@@ -40,6 +40,8 @@ function! s:OpenNifflerBuffer(file_list)
 
     call setline(1, s:prompt)
     call append(1, a:file_list)
+    call cursor(1,3)
+    startinsert!
 endfunction
 
 
@@ -117,6 +119,8 @@ function! s:RedrawScreen()
     call s:RedrawPrompt()
     call s:RedrawCandidateList()
     call s:FilterCandidateList()
+    call cursor(1,3)
+    startinsert!
 endfunction
 
 
