@@ -17,9 +17,7 @@ function! s:Niffler(...)
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
     call s:SetNifflerAutocmds()
-    let b:niffler_file_list = file_list
     let b:niffler_old_wd = old_wd
-    let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
 endfunction
 
@@ -110,7 +108,6 @@ function! s:OnCursorMovedI()
     endif
     let prompt_changed = (b:niffler_prompt !=# getline(1))
     if prompt_changed
-        let b:niffler_last_prompt = b:niffler_prompt
         let b:niffler_prompt = getline(1)
         call s:RedrawScreen()
     endif
@@ -119,7 +116,6 @@ endfunction
 
 function! s:RedrawScreen()
     call s:RedrawPrompt()
-    call s:RedrawCandidateList()
     call s:FilterCandidateList()
     call cursor(1,3)
     startinsert!
@@ -132,16 +128,6 @@ function! s:RedrawPrompt()
         let re = '\v\_^\s*\>\s*'
         let prompt_line = substitute(prompt_line, re, '', '')
         call setline(1, s:prompt . prompt_line)
-    endif
-endfunction
-
-
-function! s:RedrawCandidateList()
-    let last_prompt = '\V' . b:niffler_last_prompt
-    let redraw_list = match(b:niffler_prompt, last_prompt)
-    if redraw_list == -1
-        execute '2,$delete'
-        call append(1, b:niffler_file_list)
     endif
 endfunction
 
