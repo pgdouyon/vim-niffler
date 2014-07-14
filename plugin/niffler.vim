@@ -28,7 +28,7 @@ function! s:FindFiles()
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
         return []
     endif
-    let find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2> /dev/null"
+    let find_cmd = 'ag -g ""'
     let find_result = system(find_cmd)
     let files = split(find_result, "\n")
     return files
