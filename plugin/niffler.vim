@@ -14,9 +14,9 @@ function! s:Niffler(...)
     execute "lchdir! ".dir
     let file_list = s:FindFiles()
     call s:OpenNifflerBuffer(file_list)
+    call s:SetNifflerAutocmds()
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
-    call s:SetNifflerAutocmds()
     let b:niffler_old_wd = old_wd
     let b:niffler_prompt = ""
 endfunction
@@ -41,57 +41,6 @@ function! s:OpenNifflerBuffer(file_list)
     call append(1, a:file_list)
     call cursor(1,3)
     startinsert!
-endfunction
-
-
-function! s:SetNifflerOptions()
-    set filetype=niffler
-    setlocal buftype=nofile
-    setlocal bufhidden=wipe
-    setlocal foldcolumn=0
-    setlocal buflisted noswapfile nospell nofoldenable noreadonly nonumber nowrap
-    if exists("+cursorcolumn")
-        setlocal nocursorcolumn
-    endif
-    if exists("+colorcolumn")
-        setlocal colorcolumn=0
-    endif
-    if exists("+relativenumber")
-        setlocal norelativenumber
-    endif
-endfunction
-
-
-function! s:SetNifflerMappings()
-    let ins_del_cmds = ["<BS>", "<Del>", "<C-h>", "<C-w>", "<C-u>"]
-    for cmd in ins_del_cmds
-        execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd, cmd)
-    endfor
-
-    inoremap <buffer> <C-H> <Left>
-    inoremap <buffer> <C-J> <Down>
-    inoremap <buffer> <C-K> <Up>
-    inoremap <buffer> <C-L> <Right>
-    inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection()<CR>
-    inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection()<CR>
-
-    nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
-    nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
-    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
-endfunction
-
-
-function! s:OpenSelection()
-    let is_prompt_line = (line(".") == 1)
-    if is_prompt_line
-        call cursor(2, 1)
-    endif
-    let file = getline(".")
-    let file = substitute(file, '\v\_^\s*', '', '')
-    let file = substitute(file, '\v\s*$', '', '')
-    let dir = getcwd()
-    execute "lchdir! ".b:niffler_old_wd
-    execute "keepalt keepjumps edit ".dir."/".file
 endfunction
 
 
@@ -159,6 +108,58 @@ function! s:OnInsertEnter()
         let v:char = "move cursor"
         call cursor(1, 3)
     endif
+endfunction
+
+
+function! s:SetNifflerOptions()
+    set filetype=niffler
+    setlocal buftype=nofile
+    setlocal bufhidden=wipe
+    setlocal foldcolumn=0
+    setlocal buflisted noswapfile nospell nofoldenable noreadonly nonumber nowrap
+    if exists("+cursorcolumn")
+        setlocal nocursorcolumn
+    endif
+    if exists("+colorcolumn")
+        setlocal colorcolumn=0
+    endif
+    if exists("+relativenumber")
+        setlocal norelativenumber
+    endif
+endfunction
+
+
+function! s:SetNifflerMappings()
+    let ins_del_cmds = ["<BS>", "<Del>", "<C-h>", "<C-w>", "<C-u>"]
+    for cmd in ins_del_cmds
+        execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd, cmd)
+    endfor
+
+    inoremap <buffer> <C-H> <Left>
+    inoremap <buffer> <C-J> <Down>
+    inoremap <buffer> <C-K> <Up>
+    inoremap <buffer> <C-L> <Right>
+    inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection()<CR>
+    inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection()<CR>
+
+    nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
+    nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
+    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
+endfunction
+
+
+function! s:OpenSelection()
+    let is_prompt_line = (line(".") == 1)
+    if is_prompt_line
+        call cursor(2, 1)
+    endif
+
+    let file = getline(".")
+    let file = substitute(file, '\v\_^\s*', '', '')
+    let file = substitute(file, '\v\s*$', '', '')
+    let dir = getcwd()
+    execute "lchdir! ".b:niffler_old_wd
+    execute "keepalt keepjumps edit ".dir."/".file
 endfunction
 
 command! -nargs=? -complete=dir Niffler call<SID>Niffler(<f-args>)
