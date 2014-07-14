@@ -36,7 +36,7 @@ endfunction
 
 
 function! s:OpenNifflerBuffer(file_list)
-    keepjumps edit "__Niffler__"
+    keepjumps edit __Niffler__
 
     call setline(1, s:prompt)
     call append(1, a:file_list)
