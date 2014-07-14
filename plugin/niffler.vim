@@ -135,13 +135,13 @@ function! s:SetNifflerMappings()
         execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd, cmd)
     endfor
 
-    inoremap <buffer> <C-H> <Left>
     inoremap <buffer> <C-J> <Down>
     inoremap <buffer> <C-K> <Up>
-    inoremap <buffer> <C-L> <Right>
     inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection()<CR>
     inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection()<CR>
 
+    nnoremap <buffer> <C-J> <Down>
+    nnoremap <buffer> <C-K> <Up>
     nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
     nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
     nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
