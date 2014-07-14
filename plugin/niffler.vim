@@ -29,7 +29,7 @@ function! s:FindFiles()
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
         return []
     endif
-    let find_cmd = 'ag -g ""'
+    let find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2>/dev/null"
     let find_result = system(find_cmd)
     let files = split(find_result, "\n")
     return files
@@ -149,8 +149,14 @@ endfunction
 function! s:FilterCandidateList()
     let prompt_line = getline(1)
     let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
-    let fuzzy_filter = substitute(prompt, '\S', '[^&]{-}&', 'g')
-    execute 'silent 2,$vglobal/\v'.fuzzy_filter.'/delete'
+    if strlen(prompt) > 0
+        let filter_regex = substitute(prompt, '\S', '*&', 'g')
+        let filter_cmd = "find * -path '*/\.*' -prune -o -path '".filter_regex."*' -print 2>/dev/null"
+        let filter_result = system(filter_cmd)
+        let files = split(filter_result, "\n")
+        execute '2,$delete'
+        call append(1, files)
+    endif
 endfunction
 
 
