@@ -8,10 +8,16 @@ set cpoptions&vim
 
 let s:prompt = "> "
 
-function! s:Niffler(...)
+function! s:Niffler(vcs_root, ...)
     let old_wd = getcwd()
-    let dir = (a:0 ? a:1 : "~")
+    if a:vcs_root
+        let vcs = finddir(".git", expand("%:p:h").";")
+        let dir = matchstr(vcs, '\v.*\ze\/\.git')
+    else
+        let dir = (a:0 ? a:1 : "~")
+    endif
     execute "lchdir! ".dir
+
     let file_list = s:FindFiles()
     call s:OpenNifflerBuffer(file_list)
     call s:SetNifflerAutocmds()
@@ -162,7 +168,8 @@ function! s:OpenSelection()
     execute "keepalt keepjumps edit ".dir."/".file
 endfunction
 
-command! -nargs=? -complete=dir Niffler call<SID>Niffler(<f-args>)
+command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
+command! -nargs=? -complete=dir NifflerVCS call<SID>Niffler(1, <f-args>)
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
