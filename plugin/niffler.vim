@@ -85,8 +85,9 @@ function! s:OpenSelection()
     let file = getline(".")
     let file = substitute(file, '\v\_^\s*', '', '')
     let file = substitute(file, '\v\s*$', '', '')
-    execute "keepalt keepjumps edit ".file
+    let dir = getcwd()
     execute "lchdir! ".b:niffler_old_wd
+    execute "keepalt keepjumps edit ".dir."/".file
 endfunction
 
 
