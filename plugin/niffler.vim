@@ -60,6 +60,7 @@ function! s:SetNifflerAutocmds()
     autocmd CursorMovedI <buffer> call <SID>OnCursorMovedI()
     autocmd CursorMoved <buffer> call <SID>OnCursorMoved()
     autocmd InsertEnter <buffer> call <SID>OnInsertEnter()
+    autocmd BufLeave <buffer> call <SID>OnBufLeave()
 endfunction
 
 
@@ -210,6 +211,11 @@ endfunction
 function! s:HighlightSelectionLine()
     let color = (&background ==? "light") ? "cyan" : "darkcyan"
     execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
+endfunction
+
+
+function! s:OnBufLeave()
+    silent! call matchdelete(s:match_id)
 endfunction
 
 command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
