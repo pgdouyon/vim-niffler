@@ -95,6 +95,7 @@ function! s:FilterCandidateList()
     let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
     if strlen(prompt) > 0
         let filter_regex = substitute(prompt, '\S', '*&', 'g')
+        let filter_regex = substitute(filter_regex, '\.', '\\.', 'g')
         let filter_cmd = "find * -path '*/\.*' -prune -o -path '".filter_regex."*' -print 2>/dev/null"
         let filter_result = system(filter_cmd)
         let files = split(filter_result, "\n")
