@@ -7,6 +7,9 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 let s:prompt = "> "
+if !exists("g:niffler_fuzzy_char")
+    let g:niffler_fuzzy_char = ";"
+endif
 
 function! s:Niffler(vcs_root, ...)
     let old_wd = getcwd()
@@ -94,9 +97,14 @@ function! s:FilterCandidateList()
     let prompt_line = getline(1)
     let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
     if strlen(prompt) > 0
-        let filter_regex = substitute(prompt, '\S', '*&', 'g')
+        let bol = (prompt =~# '^\^') ? '' : '*'
+        let eol = (prompt =~# '\$$') ? '' : '*'
+        let filter_regex = substitute(prompt, '\V'.g:niffler_fuzzy_char, '*', 'g')
+        let filter_regex = substitute(filter_regex, '^\^', '', '')
+        let filter_regex = substitute(filter_regex, '\$$', '', '')
         let filter_regex = substitute(filter_regex, '\.', '\\.', 'g')
-        let filter_cmd = "find * -path '*/\.*' -prune -o -path '".filter_regex."*' -print 2>/dev/null"
+
+        let filter_cmd = "find * -path '*/\.*' -prune -o -path '".bol.filter_regex.eol."' -print 2>/dev/null"
         let filter_result = system(filter_cmd)
         let files = split(filter_result, "\n")
         execute '1,$delete'
