@@ -7,6 +7,7 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 let s:prompt = "> "
+let s:match_id = 0
 if !exists("g:niffler_fuzzy_char")
     let g:niffler_fuzzy_char = ";"
 endif
@@ -55,6 +56,7 @@ endfunction
 
 function! s:SetNifflerAutocmds()
     autocmd CursorMovedI <buffer> call <SID>OnCursorMovedI()
+    autocmd CursorMoved <buffer> call <SID>OnCursorMoved()
     autocmd InsertEnter <buffer> call <SID>OnInsertEnter()
 endfunction
 
@@ -113,6 +115,18 @@ function! s:FilterCandidateList()
         call append(0, prompt_line)
         call append(1, files)
     endif
+endfunction
+
+
+function! s:OnCursorMoved()
+    let line = line(".")
+    if line == 1
+        let line = 2
+    endif
+    let color = (&background ==? "light") ? "cyan" : "darkcyan"
+    execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
+    silent! call matchdelete(s:match_id)
+    let s:match_id = matchadd("nifflerSelectionLine", '\%'.line.'l.*')
 endfunction
 
 
