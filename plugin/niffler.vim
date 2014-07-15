@@ -99,12 +99,14 @@ function! s:FilterCandidateList()
     if strlen(prompt) > 0
         let bol = (prompt =~# '^\^') ? '' : '*'
         let eol = (prompt =~# '\$$') ? '' : '*'
+        let smart_case = (prompt =~# '\u') ? "-path " : "-iwholename "
         let filter_regex = substitute(prompt, '\V'.g:niffler_fuzzy_char, '*', 'g')
         let filter_regex = substitute(filter_regex, '^\^', '', '')
         let filter_regex = substitute(filter_regex, '\$$', '', '')
         let filter_regex = substitute(filter_regex, '\.', '\\.', 'g')
 
-        let filter_cmd = "find * -path '*/\.*' -prune -o -path '".bol.filter_regex.eol."' -print 2>/dev/null"
+        let search_pat = smart_case."'".bol.filter_regex.eol."'"
+        let filter_cmd = "find * -path '*/\.*' -prune -o ".search_pat." -print 2>/dev/null"
         let filter_result = system(filter_cmd)
         let files = split(filter_result, "\n")
         execute '1,$delete'
