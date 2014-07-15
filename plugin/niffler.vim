@@ -8,6 +8,7 @@ set cpoptions&vim
 
 let s:prompt = "> "
 let s:match_id = 0
+
 if !exists("g:niffler_fuzzy_char")
     let g:niffler_fuzzy_char = ";"
 endif
@@ -27,6 +28,7 @@ function! s:Niffler(vcs_root, ...)
     call s:SetNifflerAutocmds()
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
+    call s:HighlightFirstSelection()
     let b:niffler_old_wd = old_wd
     let b:niffler_prompt = ""
 endfunction
@@ -123,8 +125,7 @@ function! s:OnCursorMoved()
     if line == 1
         let line = 2
     endif
-    let color = (&background ==? "light") ? "cyan" : "darkcyan"
-    execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
+    call s:HighlightSelectionLine()
     silent! call matchdelete(s:match_id)
     let s:match_id = matchadd("nifflerSelectionLine", '\%'.line.'l.*')
 endfunction
@@ -185,6 +186,12 @@ function! s:SetNifflerMappings()
 endfunction
 
 
+function! s:HighlightFirstSelection()
+    call s:HighlightSelectionLine()
+    let s:match_id = matchadd("nifflerSelectionLine", '\%2l.*')
+endfunction
+
+
 function! s:OpenSelection(cmd)
     let is_prompt_line = (line(".") == 1)
     if is_prompt_line
@@ -197,6 +204,12 @@ function! s:OpenSelection(cmd)
     let dir = getcwd()
     execute "lchdir! ".b:niffler_old_wd
     execute "keepalt keepjumps ".a:cmd." ".dir."/".file
+endfunction
+
+
+function! s:HighlightSelectionLine()
+    let color = (&background ==? "light") ? "cyan" : "darkcyan"
+    execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
 endfunction
 
 command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
