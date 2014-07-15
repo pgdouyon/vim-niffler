@@ -152,18 +152,24 @@ function! s:SetNifflerMappings()
 
     inoremap <buffer> <C-J> <Down>
     inoremap <buffer> <C-K> <Up>
-    inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection()<CR>
-    inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection()<CR>
+    inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection("edit")<CR>
+    inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection("edit")<CR>
+    inoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection("tabedit")<CR>
+    inoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection("vsplit")<CR>
+    inoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection("split")<CR>
 
     nnoremap <buffer> <C-J> <Down>
     nnoremap <buffer> <C-K> <Up>
-    nnoremap <buffer> o :<C-u>call <SID>OpenSelection()<CR>
-    nnoremap <buffer> O :<C-u>call <SID>OpenSelection()<CR>
-    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection()<CR>
+    nnoremap <buffer> o :<C-u>call <SID>OpenSelection("edit")<CR>
+    nnoremap <buffer> O :<C-u>call <SID>OpenSelection("edit")<CR>
+    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection("edit")<CR>
+    nnoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection("tabedit")<CR>
+    nnoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection("vsplit")<CR>
+    nnoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection("split")<CR>
 endfunction
 
 
-function! s:OpenSelection()
+function! s:OpenSelection(cmd)
     let is_prompt_line = (line(".") == 1)
     if is_prompt_line
         call cursor(2, 1)
@@ -174,7 +180,7 @@ function! s:OpenSelection()
     let file = substitute(file, '\v\s*$', '', '')
     let dir = getcwd()
     execute "lchdir! ".b:niffler_old_wd
-    execute "keepalt keepjumps edit ".dir."/".file
+    execute "keepalt keepjumps ".a:cmd." ".dir."/".file
 endfunction
 
 command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
