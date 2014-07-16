@@ -14,6 +14,10 @@ if !exists("g:niffler_fuzzy_char")
 endif
 
 function! s:Niffler(vcs_root, ...)
+    if !executable("find")
+        echoerr "Niffler: `find` command not installed. Unable to build list of files."
+        return
+    endif
     let old_wd = getcwd()
     if a:vcs_root
         let vcs = finddir(".git", expand("%:p:h").";")
@@ -35,10 +39,6 @@ endfunction
 
 
 function! s:FindFiles()
-    if !executable("find")
-        echoerr "Niffler: `find` command not installed. Unable to build list of files."
-        return []
-    endif
     let find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2>/dev/null"
     let find_result = system(find_cmd)
     let files = split(find_result, "\n")
