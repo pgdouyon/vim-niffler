@@ -148,17 +148,10 @@ function! s:SetNifflerOptions()
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
-    setlocal foldcolumn=0
-    setlocal buflisted noswapfile nospell nofoldenable noreadonly nonumber nowrap
-    if exists("+cursorcolumn")
-        setlocal nocursorcolumn
-    endif
-    if exists("+colorcolumn")
-        setlocal colorcolumn=0
-    endif
-    if exists("+relativenumber")
-        setlocal norelativenumber
-    endif
+    silent! setlocal foldcolumn=0
+    silent! setlocal colorcolumn=0
+    silent! setlocal buflisted noswapfile nospell nofoldenable noreadonly nowrap
+    silent! setlocal nocursorline nocursorcolumn nonumber norelativenumber
 endfunction
 
 
