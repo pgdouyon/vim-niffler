@@ -231,12 +231,19 @@ function! s:PruneMruList()
     endif
 endfunction
 
+
+function! s:WriteMruCacheFile()
+    call s:PruneMruList()
+    call writefile(s:mru_list, s:mru_cache_file)
+endfunction
+
 command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
 command! -nargs=? -complete=dir NifflerVCS call<SID>Niffler(1, <f-args>)
 
 augroup niffler
     autocmd BufEnter * call add(s:mru_list, expand("%:p"))
     autocmd CursorHold * call <SID>PruneMruList()
+    autocmd VimLeave * call <SID>WriteMruCacheFile()
 augroup END
 
 let &cpoptions = s:save_cpo
