@@ -16,6 +16,10 @@ if !filereadable(s:mru_cache_file)
 endif
 let s:mru_list = readfile(s:mru_cache_file)
 
+if !exists("g:niffler_mru_max_history")
+    let g:niffler_mru_max_history = 100
+endif
+
 if !exists("g:niffler_fuzzy_char")
     let g:niffler_fuzzy_char = ";"
 endif
@@ -218,11 +222,21 @@ function! s:OnBufLeave()
     silent! call matchdelete(s:match_id)
 endfunction
 
+
+function! s:PruneMruList()
+    let size = len(s:mru_list)
+    if size > g:niffler_mru_max_history
+        let slice_index = size - g:niffler_mru_max_history
+        call remove(s:mru_list, 0, slice_index - 1)
+    endif
+endfunction
+
 command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
 command! -nargs=? -complete=dir NifflerVCS call<SID>Niffler(1, <f-args>)
 
 augroup niffler
     autocmd BufEnter * call add(s:mru_list, expand("%:p"))
+    autocmd CursorHold * call <SID>PruneMruList()
 augroup END
 
 let &cpoptions = s:save_cpo
