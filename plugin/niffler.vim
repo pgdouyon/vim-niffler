@@ -9,6 +9,13 @@ set cpoptions&vim
 let s:prompt = "> "
 let s:match_id = 0
 
+let s:script_folder = expand("<sfile>:p:h")
+let s:mru_cache_file = s:script_folder."/niffler_mru_list.txt"
+if !filereadable(s:mru_cache_file)
+    call system("touch ".s:mru_cache_file)
+endif
+let s:mru_list = readfile(s:mru_cache_file)
+
 if !exists("g:niffler_fuzzy_char")
     let g:niffler_fuzzy_char = ";"
 endif
@@ -213,6 +220,10 @@ endfunction
 
 command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
 command! -nargs=? -complete=dir NifflerVCS call<SID>Niffler(1, <f-args>)
+
+augroup niffler
+    autocmd BufEnter * call add(s:mru_list, expand("%:p"))
+augroup END
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
