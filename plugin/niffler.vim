@@ -55,6 +55,23 @@ function! s:Niffler(vcs_root, ...)
 endfunction
 
 
+function! s:NifflerMRU()
+    call s:OpenNifflerBuffer()
+    call s:PruneMruList()
+    call s:SetNifflerText(s:mru_list)
+    call s:SetNifflerAutocmds()
+    call s:SetNifflerOptions()
+    call s:SetNifflerMappings()
+    call s:HighlightFirstSelection()
+    let b:niffler_old_wd = getcwd()
+    let b:niffler_candidate_list = s:mru_list
+    let b:niffler_refresh_candidates = 1
+    let b:niffler_force_internal = 1
+    let b:niffler_last_prompt = ""
+    let b:niffler_prompt = ""
+endfunction
+
+
 function! s:FindFiles()
     let find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2>/dev/null"
     let find_result = system(find_cmd)
@@ -292,8 +309,9 @@ function! s:WriteMruCacheFile()
     call writefile(s:mru_list, s:mru_cache_file)
 endfunction
 
-command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
-command! -nargs=? -complete=dir NifflerVCS call<SID>Niffler(1, <f-args>)
+command! -nargs=? -complete=dir Niffler call <SID>Niffler(0, <f-args>)
+command! -nargs=? -complete=dir NifflerVCS call <SID>Niffler(1, <f-args>)
+command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
 
 augroup niffler
     autocmd BufLeave * call <SID>UpdateMruList(expand("%:p"))
