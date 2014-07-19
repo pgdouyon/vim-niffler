@@ -46,8 +46,10 @@ function! s:Niffler(vcs_root, ...)
     call s:SetNifflerMappings()
     call s:HighlightFirstSelection()
     let b:niffler_old_wd = old_wd
+    let b:niffler_candidate_list = file_list
     let b:niffler_refresh_candidates = 0
     let b:niffler_force_internal = 0
+    let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
 endfunction
 
@@ -96,6 +98,7 @@ endfunction
 
 function! s:RedrawScreen()
     call s:RedrawPrompt()
+    call s:RefreshCandidateList()
     call s:FilterCandidateList(b:niffler_force_internal)
     call cursor(1,3)
     startinsert!
@@ -108,6 +111,16 @@ function! s:RedrawPrompt()
         let re = '\v\_^\s*\>\s*'
         let prompt_line = substitute(prompt_line, re, '', '')
         call setline(1, s:prompt . prompt_line)
+    endif
+endfunction
+
+
+function! s:RefreshCandidateList()
+    let cur_prompt = getline(1)
+    let refresh = b:niffler_refresh_candidates && !matchstr(cur_prompt, b:niffler_last_prompt)
+    if refresh
+        execute 'silent! 2,$delete'
+        call append(1, b:niffler_candidate_list)
     endif
 endfunction
 
