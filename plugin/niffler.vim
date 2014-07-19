@@ -223,6 +223,17 @@ function! s:OnBufLeave()
 endfunction
 
 
+function! s:UpdateMruList(fname)
+    let scratch = (&l:buftype ==# "nofile")
+    let quickfix = (&l:buftype ==# "quickfix")
+    let helpfile = (&l:buftype ==# "help")
+    let unlisted = (&l:buflisted == 0)
+    if !scratch && !quickfix && !helpfile && !unlisted
+        call add(s:mru_list, a:fname)
+    endif
+endfunction
+
+
 function! s:PruneMruList()
     let size = len(s:mru_list)
     let unique_mru_files = {}
@@ -252,7 +263,7 @@ command! -nargs=? -complete=dir Niffler call<SID>Niffler(0, <f-args>)
 command! -nargs=? -complete=dir NifflerVCS call<SID>Niffler(1, <f-args>)
 
 augroup niffler
-    autocmd BufEnter * call add(s:mru_list, expand("%:p"))
+    autocmd BufLeave * call <SID>UpdateMruList(expand("%:p"))
     autocmd CursorHold * call <SID>PruneMruList()
     autocmd VimLeave * call <SID>WriteMruCacheFile()
 augroup END
