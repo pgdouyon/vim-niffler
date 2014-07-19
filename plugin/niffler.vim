@@ -8,6 +8,7 @@ set cpoptions&vim
 
 let s:prompt = "> "
 let s:match_id = 0
+let s:vglobal_filter_limit = 1000
 
 let s:script_folder = expand("<sfile>:p:h")
 let s:mru_cache_file = s:script_folder."/niffler_mru_list.txt"
@@ -45,6 +46,8 @@ function! s:Niffler(vcs_root, ...)
     call s:SetNifflerMappings()
     call s:HighlightFirstSelection()
     let b:niffler_old_wd = old_wd
+    let b:niffler_refresh_candidates = 0
+    let b:niffler_force_internal = 0
     let b:niffler_prompt = ""
 endfunction
 
@@ -93,7 +96,7 @@ endfunction
 
 function! s:RedrawScreen()
     call s:RedrawPrompt()
-    call s:FilterCandidateList()
+    call s:FilterCandidateList(b:niffler_force_internal)
     call cursor(1,3)
     startinsert!
 endfunction
@@ -109,17 +112,30 @@ function! s:RedrawPrompt()
 endfunction
 
 
-function! s:FilterCandidateList()
+function! s:FilterCandidateList(internal)
+    let internal_filter = a:internal || line("$") < s:vglobal_filter_limit
     let prompt_line = getline(1)
     let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
-    if strlen(prompt) > 0
+    if strlen(prompt) <= 0
+        return
+    endif
+    if internal_filter
+        let b:niffler_refresh_candidates = 1
+        let bol = (prompt =~# '^\^') ? '' : '.\{-}'
+        let eol = (prompt =~# '\$$') ? '' : '.\{-}'
+        let smart_case = (prompt =~# '\u') ? '\C' : '\c'
+        let filter_regex = substitute(prompt, '\.', '\\.', 'g')
+        let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.\\{-}', 'g')
+        execute 'silent! 2,$vglobal/\m'.smart_case.bol.filter_regex.eol.'/delete'
+    else
+        let b:niffler_refresh_candidates = 0
         let bol = (prompt =~# '^\^') ? '' : '*'
         let eol = (prompt =~# '\$$') ? '' : '*'
         let smart_case = (prompt =~# '\u') ? "-path " : "-iwholename "
-        let filter_regex = substitute(prompt, '\V'.g:niffler_fuzzy_char, '*', 'g')
-        let filter_regex = substitute(filter_regex, '^\^', '', '')
+        let filter_regex = substitute(prompt, '^\^', '', '')
         let filter_regex = substitute(filter_regex, '\$$', '', '')
         let filter_regex = substitute(filter_regex, '\.', '\\.', 'g')
+        let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '*', 'g')
 
         let search_pat = smart_case."'".bol.filter_regex.eol."'"
         let filter_cmd = "find * -path '*/\.*' -prune -o ".search_pat." -print 2>/dev/null"
