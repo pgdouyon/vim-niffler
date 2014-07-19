@@ -40,7 +40,8 @@ function! s:Niffler(vcs_root, ...)
     execute "lchdir! ".dir
 
     let file_list = s:FindFiles()
-    call s:OpenNifflerBuffer(file_list)
+    call s:OpenNifflerBuffer()
+    call s:SetNifflerText(file_list)
     call s:SetNifflerAutocmds()
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
@@ -62,9 +63,12 @@ function! s:FindFiles()
 endfunction
 
 
-function! s:OpenNifflerBuffer(file_list)
+function! s:OpenNifflerBuffer()
     keepjumps edit __Niffler__
+endfunction
 
+
+function! s:SetNifflerText(file_list)
     call setline(1, s:prompt)
     call append(1, a:file_list)
     call cursor(1,3)
