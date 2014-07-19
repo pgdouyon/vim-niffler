@@ -225,6 +225,17 @@ endfunction
 
 function! s:PruneMruList()
     let size = len(s:mru_list)
+    let unique_mru_files = {}
+    for i in range(size - 1, 0, -1)
+        let file = s:mru_list[i]
+        if has_key(unique_mru_files, file)
+            call remove(s:mru_list, i)
+        else
+            let unique_mru_files[file] = 0
+        endif
+    endfor
+
+    let size = len(s:mru_list)
     if size > g:niffler_mru_max_history
         let slice_index = size - g:niffler_mru_max_history
         call remove(s:mru_list, 0, slice_index - 1)
