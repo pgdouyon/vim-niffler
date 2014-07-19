@@ -58,7 +58,11 @@ endfunction
 function! s:NifflerMRU()
     call s:OpenNifflerBuffer()
     call s:PruneMruList()
+
+    call reverse(s:mru_list)
     call s:SetNifflerText(s:mru_list)
+    call reverse(s:mru_list)
+
     call s:SetNifflerAutocmds()
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
