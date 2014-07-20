@@ -96,7 +96,9 @@ endfunction
 
 
 function! s:OpenNifflerBuffer()
+    let old_alt_buffer = bufname("#")
     keepjumps edit __Niffler__
+    let b:niffler_old_alt_buffer = old_alt_buffer
 endfunction
 
 
@@ -247,6 +249,7 @@ function! s:SetNifflerMappings()
     inoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection("tabedit")<CR>
     inoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection("vsplit")<CR>
     inoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection("split")<CR>
+    inoremap <buffer> <C-G> <Esc>:call <SID>QuitNiffler()<CR>
 
     nnoremap <buffer> <C-J> <Down>
     nnoremap <buffer> <C-K> <Up>
@@ -256,6 +259,7 @@ function! s:SetNifflerMappings()
     nnoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection("tabedit")<CR>
     nnoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection("vsplit")<CR>
     nnoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection("split")<CR>
+    nnoremap <buffer> q :<C-u>call <SID>QuitNiffler()<CR>
 endfunction
 
 
@@ -291,6 +295,14 @@ function! s:OpenSelection(cmd)
     let old_wd = b:niffler_old_wd
     execute "keepalt keepjumps ".a:cmd." "file
     execute "lchdir! ".old_wd
+endfunction
+
+
+function! s:QuitNiffler()
+    let alt_buffer = b:niffler_old_alt_buffer
+    buffer #
+    execute "buffer ".alt_buffer
+    buffer #
 endfunction
 
 
