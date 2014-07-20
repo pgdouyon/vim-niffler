@@ -55,11 +55,11 @@ function! s:Niffler(vcs_root, new_file,  ...)
         let vcs = finddir(".git", expand("%:p:h").";")
         let dir = matchstr(vcs, '\v.*\ze\/\.git')
     else
-        let dir = (a:0 ? a:000[a:0 - 1] : "~")
+        let dir = (a:0 ? a:1 : "~")
     endif
     execute "lchdir! ".dir
 
-    let find_args = (a:0 > 1 ? join(remove(copy(a:000), 0, a:0 - 2)) : "")
+    let find_args = join(a:000[1:])
     if a:new_file
         let find_args .= ' -type d -print '
     else
