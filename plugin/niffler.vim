@@ -18,7 +18,7 @@ endif
 let s:mru_list = readfile(s:mru_cache_file)
 
 if !exists("g:niffler_mru_max_history")
-    let g:niffler_mru_max_history = 100
+    let g:niffler_mru_max_history = 500
 endif
 
 if !exists("g:niffler_fuzzy_char")
