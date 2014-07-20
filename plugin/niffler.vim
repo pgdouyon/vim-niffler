@@ -265,6 +265,12 @@ function! s:HighlightFirstSelection()
 endfunction
 
 
+function! s:HighlightSelectionLine()
+    let color = (&background ==? "light") ? "cyan" : "darkcyan"
+    execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
+endfunction
+
+
 function! s:OpenSelection(cmd)
     let is_prompt_line = (line(".") == 1)
     if is_prompt_line
@@ -285,12 +291,6 @@ function! s:OpenSelection(cmd)
     let old_wd = b:niffler_old_wd
     execute "keepalt keepjumps ".a:cmd." "file
     execute "lchdir! ".old_wd
-endfunction
-
-
-function! s:HighlightSelectionLine()
-    let color = (&background ==? "light") ? "cyan" : "darkcyan"
-    execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
 endfunction
 
 
