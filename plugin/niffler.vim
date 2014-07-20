@@ -135,7 +135,7 @@ endfunction
 function! s:RedrawScreen()
     call s:RedrawPrompt()
     call s:RefreshCandidateList()
-    call s:FilterCandidateList(b:niffler_force_internal)
+    call s:FilterCandidateList()
     call cursor(1,3)
     startinsert!
 endfunction
@@ -161,8 +161,8 @@ function! s:RefreshCandidateList()
 endfunction
 
 
-function! s:FilterCandidateList(internal)
-    let internal_filter = a:internal || line("$") < s:vglobal_filter_limit
+function! s:FilterCandidateList()
+    let internal_filter = b:niffler_force_internal || (line("$") < s:vglobal_filter_limit)
     let prompt_line = getline(1)
     let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
     if strlen(prompt) <= 0
