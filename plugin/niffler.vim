@@ -25,7 +25,7 @@ if !exists("g:niffler_fuzzy_char")
     let g:niffler_fuzzy_char = ";"
 endif
 
-function! s:Niffler(vcs_root, ...)
+function! s:Niffler(vcs_root, new_file,  ...)
     if !executable("find")
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
         return
@@ -39,7 +39,13 @@ function! s:Niffler(vcs_root, ...)
     endif
     execute "lchdir! ".dir
 
-    let file_list = s:FindFiles()
+    let find_args = ""
+    if a:new_file
+        let find_args .= '-type d -print '
+    else
+        let find_args .= '\( -type f -o -type l \) -print '
+    endif
+    let file_list = s:FindFiles(find_args)
     call s:OpenNifflerBuffer()
     call s:SetNifflerText(file_list)
     call s:SetNifflerAutocmds()
@@ -52,6 +58,8 @@ function! s:Niffler(vcs_root, ...)
     let b:niffler_force_internal = 0
     let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
+    let b:niffler_find_args = find_args
+    let b:niffler_new_file = a:new_file
 endfunction
 
 
@@ -73,11 +81,14 @@ function! s:NifflerMRU()
     let b:niffler_force_internal = 1
     let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
+    let b:niffler_find_args = ""
+    let b:niffler_new_file = 0
 endfunction
 
 
-function! s:FindFiles()
-    let find_cmd = "find * -path '*/\.*' -prune -o -type f -print -o -type l -print 2>/dev/null"
+function! s:FindFiles(args)
+    let hidden_ignore = "-path '*/\.*' -prune -o "
+    let find_cmd = "find * ".hidden_ignore.a:args."2>/dev/null"
     let find_result = system(find_cmd)
     let files = split(find_result, "\n")
     return files
@@ -175,8 +186,10 @@ function! s:FilterCandidateList(internal)
         let filter_regex = substitute(filter_regex, '\.', '\\.', 'g')
         let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '*', 'g')
 
+        let hidden_ignore = "-path '*/\.*' -prune -o "
         let search_pat = smart_case."'".bol.filter_regex.eol."'"
-        let filter_cmd = "find * -path '*/\.*' -prune -o ".search_pat." -print 2>/dev/null"
+        let filter_args = hidden_ignore . search_pat . " -a " . b:niffler_find_args
+        let filter_cmd = "find * ".filter_args." 2>/dev/null"
         let filter_result = system(filter_cmd)
         let files = split(filter_result, "\n")
         execute '1,$delete'
@@ -260,6 +273,14 @@ function! s:OpenSelection(cmd)
     let file = getline(".")
     let file = substitute(file, '\v\_^\s*', '', '')
     let file = substitute(file, '\v\s*$', '', '')
+    if b:niffler_new_file
+        let new_file = input("New file name: ")
+        let file = l:file."/".new_file
+        if new_file =~ "/"
+            call mkdir(matchstr(getcwd()."/".file, '.*\ze\/'), "p")
+        endif
+        call system("touch ".file)
+    endif
     let old_wd = b:niffler_old_wd
     execute "keepalt keepjumps ".a:cmd." "file
     execute "lchdir! ".old_wd
@@ -313,8 +334,10 @@ function! s:WriteMruCacheFile()
     call writefile(s:mru_list, s:mru_cache_file)
 endfunction
 
-command! -nargs=? -complete=dir Niffler call <SID>Niffler(0, <f-args>)
-command! -nargs=? -complete=dir NifflerVCS call <SID>Niffler(1, <f-args>)
+command! -nargs=? -complete=dir Niffler call <SID>Niffler(0, 0, <f-args>)
+command! -nargs=? -complete=dir NifflerVCS call <SID>Niffler(1, 0, <f-args>)
+command! -nargs=? -complete=dir NifflerNew call <SID>Niffler(0, 1, <f-args>)
+command! -nargs=? -complete=dir NifflerNewVCS call <SID>Niffler(1, 1, <f-args>)
 command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
 
 augroup niffler
