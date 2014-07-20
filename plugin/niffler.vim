@@ -342,6 +342,7 @@ command! -nargs=? -complete=dir NifflerNewVCS call <SID>Niffler(1, 1, <f-args>)
 command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
 
 augroup niffler
+    autocmd!
     autocmd BufLeave * call <SID>UpdateMruList(expand("%:p"))
     autocmd CursorHold * call <SID>PruneMruList()
     autocmd VimLeave * call <SID>WriteMruCacheFile()
