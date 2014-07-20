@@ -35,15 +35,15 @@ function! s:Niffler(vcs_root, new_file,  ...)
         let vcs = finddir(".git", expand("%:p:h").";")
         let dir = matchstr(vcs, '\v.*\ze\/\.git')
     else
-        let dir = (a:0 ? a:1 : "~")
+        let dir = (a:0 ? a:000[a:0 - 1] : "~")
     endif
     execute "lchdir! ".dir
 
-    let find_args = ""
+    let find_args = (a:0 > 1 ? join(remove(copy(a:000), 0, a:0 - 2)) : "")
     if a:new_file
-        let find_args .= '-type d -print '
+        let find_args .= ' -type d -print '
     else
-        let find_args .= '\( -type f -o -type l \) -print '
+        let find_args .= ' \( -type f -o -type l \) -print '
     endif
     let file_list = s:FindFiles(find_args)
     call s:OpenNifflerBuffer()
@@ -347,10 +347,10 @@ function! s:WriteMruCacheFile()
     call writefile(s:mru_list, s:mru_cache_file)
 endfunction
 
-command! -nargs=? -complete=dir Niffler call <SID>Niffler(0, 0, <f-args>)
-command! -nargs=? -complete=dir NifflerVCS call <SID>Niffler(1, 0, <f-args>)
-command! -nargs=? -complete=dir NifflerNew call <SID>Niffler(0, 1, <f-args>)
-command! -nargs=? -complete=dir NifflerNewVCS call <SID>Niffler(1, 1, <f-args>)
+command! -nargs=* -complete=dir Niffler call <SID>Niffler(0, 0, <f-args>)
+command! -nargs=* -complete=dir NifflerVCS call <SID>Niffler(1, 0, <f-args>)
+command! -nargs=* -complete=dir NifflerNew call <SID>Niffler(0, 1, <f-args>)
+command! -nargs=* -complete=dir NifflerNewVCS call <SID>Niffler(1, 1, <f-args>)
 command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
 
 augroup niffler
