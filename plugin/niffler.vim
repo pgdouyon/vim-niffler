@@ -1,3 +1,18 @@
+"==============================================================================
+"File:        niffler.vim
+"Description: Fuzzy file finder for Vim.  Supported modes are fuzzy file find by
+"             directory, fuzzy file find by VCS root directory, MRU fuzzy file
+"             find, and new file creation.
+"Maintainer:  Pierre-Guy Douyon <pgdouyon@alum.mit.edu>
+"Version:     1.0.0
+"Last Change: 2014-07-20
+"License:     MIT <../LICENSE>
+"==============================================================================
+
+" ======================================================================
+" Configuration and Defaults
+" ======================================================================
+
 if exists("g:loaded_niffler")
     finish
 endif
@@ -24,6 +39,11 @@ endif
 if !exists("g:niffler_fuzzy_char")
     let g:niffler_fuzzy_char = ";"
 endif
+
+
+" ======================================================================
+" Plugin Code
+" ======================================================================
 
 function! s:Niffler(vcs_root, new_file,  ...)
     if !executable("find")
@@ -117,6 +137,10 @@ function! s:SetNifflerAutocmds()
     autocmd BufLeave <buffer> call <SID>OnBufLeave()
 endfunction
 
+
+" ======================================================================
+" Handler Functions
+" ======================================================================
 
 function! s:OnCursorMovedI()
     let is_prompt_line = (line(".") == 1)
@@ -311,6 +335,10 @@ function! s:OnBufLeave()
 endfunction
 
 
+" ======================================================================
+" MRU Handlers
+" ======================================================================
+
 function! s:UpdateMruList(fname)
     let scratch = (&l:buftype ==# "nofile")
     let quickfix = (&l:buftype ==# "quickfix")
@@ -347,11 +375,21 @@ function! s:WriteMruCacheFile()
     call writefile(s:mru_list, s:mru_cache_file)
 endfunction
 
+
+" ======================================================================
+" Commands
+" ======================================================================
+
 command! -nargs=* -complete=dir Niffler call <SID>Niffler(0, 0, <f-args>)
 command! -nargs=* -complete=dir NifflerVCS call <SID>Niffler(1, 0, <f-args>)
 command! -nargs=* -complete=dir NifflerNew call <SID>Niffler(0, 1, <f-args>)
 command! -nargs=* -complete=dir NifflerNewVCS call <SID>Niffler(1, 1, <f-args>)
 command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
+
+
+" ======================================================================
+" Autocommands
+" ======================================================================
 
 augroup niffler
     autocmd!
