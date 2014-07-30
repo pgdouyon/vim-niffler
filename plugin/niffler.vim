@@ -23,7 +23,6 @@ set cpoptions&vim
 
 let s:prompt = "> "
 let s:match_id = 0
-let s:vglobal_filter_limit = 1000
 
 let s:script_folder = expand("<sfile>:p:h")
 let s:mru_cache_file = s:script_folder."/niffler_mru_list.txt"
@@ -74,11 +73,8 @@ function! s:Niffler(vcs_root, new_file,  ...)
     call s:HighlightFirstSelection()
     let b:niffler_old_wd = old_wd
     let b:niffler_candidate_list = file_list
-    let b:niffler_refresh_candidates = 0
-    let b:niffler_force_internal = 0
     let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
-    let b:niffler_find_args = find_args
     let b:niffler_new_file = a:new_file
 endfunction
 
@@ -97,11 +93,8 @@ function! s:NifflerMRU()
     call s:HighlightFirstSelection()
     let b:niffler_old_wd = getcwd()
     let b:niffler_candidate_list = s:mru_list
-    let b:niffler_refresh_candidates = 1
-    let b:niffler_force_internal = 1
     let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
-    let b:niffler_find_args = ""
     let b:niffler_new_file = 0
 endfunction
 
@@ -181,8 +174,7 @@ endfunction
 function! s:RefreshCandidateList()
     let cur_prompt = getline(1)
     let new_prompt = empty(matchstr(cur_prompt, b:niffler_last_prompt))
-    let refresh = b:niffler_refresh_candidates && new_prompt
-    if refresh
+    if new_prompt
         execute 'silent! 2,$delete'
         call append(1, b:niffler_candidate_list)
     endif
@@ -190,40 +182,17 @@ endfunction
 
 
 function! s:FilterCandidateList()
-    let internal_filter = b:niffler_force_internal || (line("$") < s:vglobal_filter_limit)
     let prompt_line = getline(1)
     let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
     if strlen(prompt) <= 0
         return
     endif
-    if internal_filter
-        let b:niffler_refresh_candidates = 1
-        let bol = (prompt =~# '^\^') ? '' : '.\{-}'
-        let eol = (prompt =~# '\$$') ? '' : '.\{-}'
-        let smart_case = (prompt =~# '\u') ? '\C' : '\c'
-        let filter_regex = substitute(prompt, '\.', '\\.', 'g')
-        let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.\\{-}', 'g')
-        execute 'silent! 2,$vglobal/\m'.smart_case.bol.filter_regex.eol.'/delete'
-    else
-        let b:niffler_refresh_candidates = 0
-        let bol = (prompt =~# '^\^') ? '' : '*'
-        let eol = (prompt =~# '\$$') ? '' : '*'
-        let smart_case = (prompt =~# '\u') ? "-path " : "-iwholename "
-        let filter_regex = substitute(prompt, '^\^', '', '')
-        let filter_regex = substitute(filter_regex, '\$$', '', '')
-        let filter_regex = substitute(filter_regex, '\.', '\\.', 'g')
-        let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '*', 'g')
-
-        let hidden_ignore = "-path '*/\.*' -prune -o "
-        let search_pat = smart_case."'".bol.filter_regex.eol."'"
-        let filter_args = hidden_ignore . search_pat . " -a " . b:niffler_find_args
-        let filter_cmd = "find * ".filter_args." 2>/dev/null"
-        let filter_result = system(filter_cmd)
-        let files = split(filter_result, "\n")
-        execute '1,$delete'
-        call append(0, prompt_line)
-        call append(1, files)
-    endif
+    let smart_case = (prompt =~# '\u') ? '' : 'i'
+    let special_chars = substitute('.*+?[]{}()|\', '\V'.g:niffler_fuzzy_char, '', '')
+    let filter_regex = escape(prompt, special_chars)
+    let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
+    let grep_cmd = printf("grep -E%s -e %s", smart_case, filter_regex)
+    execute 'silent! 2,$! '.grep_cmd
 endfunction
 
 
