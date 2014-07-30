@@ -333,7 +333,7 @@ function! s:PruneMruList()
         let file = s:mru_list[i]
         if has_key(unique_mru_files, file)
             call remove(s:mru_list, i)
-        else
+        elseif !empty(file)
             let unique_mru_files[file] = 0
         endif
     endfor
