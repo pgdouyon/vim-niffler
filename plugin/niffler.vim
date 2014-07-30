@@ -152,6 +152,7 @@ function! s:OnCursorMovedI()
     endif
     let prompt_changed = (b:niffler_prompt !=# getline(1))
     if prompt_changed
+        let b:niffler_last_prompt = b:niffler_prompt
         let b:niffler_prompt = getline(1)
         call s:RedrawScreen()
     endif
