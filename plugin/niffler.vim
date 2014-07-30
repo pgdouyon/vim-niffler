@@ -167,6 +167,8 @@ function! s:RedrawPrompt()
         let re = '\v\_^\s*\>\s*'
         let prompt_line = substitute(prompt_line, re, '', '')
         call setline(1, s:prompt . prompt_line)
+        let b:niffler_last_prompt = b:niffler_prompt
+        let b:niffler_prompt = getline(1)
     endif
 endfunction
 
