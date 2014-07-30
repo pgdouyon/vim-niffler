@@ -296,9 +296,13 @@ endfunction
 
 function! s:QuitNiffler()
     let alt_buffer = b:niffler_old_alt_buffer
-    buffer #
-    execute "buffer ".alt_buffer
-    buffer #
+    if !empty(alt_buffer)
+        buffer #
+        execute "buffer ".alt_buffer
+        buffer #
+    else
+        buffer #
+    endif
 endfunction
 
 
