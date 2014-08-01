@@ -109,9 +109,9 @@ endfunction
 
 
 function! s:OpenNifflerBuffer()
-    let old_alt_buffer = bufname("#")
-    keepjumps edit __Niffler__
-    let b:niffler_old_alt_buffer = old_alt_buffer
+    let alt_buffer = bufname("%")
+    keepalt keepjumps edit __Niffler__
+    let b:niffler_alt_buffer = alt_buffer
 endfunction
 
 
@@ -289,20 +289,14 @@ function! s:OpenSelection(cmd)
         call system("touch ".file)
     endif
     let old_wd = b:niffler_old_wd
-    execute "keepalt keepjumps ".a:cmd." "file
+    call s:QuitNiffler()
+    execute a:cmd." ".file
     execute "lchdir! ".old_wd
 endfunction
 
 
 function! s:QuitNiffler()
-    let alt_buffer = b:niffler_old_alt_buffer
-    if !empty(alt_buffer)
-        buffer #
-        execute "buffer ".alt_buffer
-        buffer #
-    else
-        buffer #
-    endif
+    execute "keepalt keepjumps buffer ".b:niffler_alt_buffer
 endfunction
 
 
