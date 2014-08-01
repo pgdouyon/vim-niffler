@@ -314,7 +314,8 @@ function! s:UpdateMruList(fname)
     let quickfix = (&l:buftype ==# "quickfix")
     let helpfile = (&l:buftype ==# "help")
     let unlisted = (&l:buflisted == 0)
-    if !scratch && !quickfix && !helpfile && !unlisted
+    let gitcommit = (&l:filetype ==# "gitcommit")
+    if !scratch && !quickfix && !helpfile && !unlisted && !gitcommit
         call add(s:mru_list, a:fname)
     endif
 endfunction
