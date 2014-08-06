@@ -185,16 +185,18 @@ endfunction
 
 function! s:FilterCandidateList()
     let prompt_line = getline(1)
-    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\S\+')
+    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\.\+')
     if strlen(prompt) <= 0
         return
     endif
-    let smart_case = (prompt =~# '\u') ? '' : 'i'
     let special_chars = substitute('.*+?[]{}()|\', '\V'.g:niffler_fuzzy_char, '', '')
     let filter_regex = escape(prompt, special_chars)
     let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
-    let grep_cmd = printf("grep -E%s -e %s", smart_case, filter_regex)
-    execute 'silent! 2,$! '.grep_cmd
+    let search_patterns = split(filter_regex)
+    let map_expr = '"grep -E".((v:val =~# "\\u") ? "" : "i")." -e ".v:val'
+    call map(search_patterns, map_expr)
+    let filter = join(search_patterns, " | ")
+    execute 'silent! 2,$! '.filter
 endfunction
 
 
