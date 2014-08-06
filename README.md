@@ -10,10 +10,10 @@ Vim-Niffler, on the other hand, is a fast, lightweight, fuzzy, file finder for
 Vim and is heavily inspired by [FZF][].
 
 I made Vim-Niffler because all the other fuzzy file finders I tried were either
-really slow (Unite) or didn't integrate well with GVim (FZF).  If you use Vim in
-the terminal, I highly recommend FZF over this plugin; it's faster and more
-feature complete.  This plugin is really just meant to be a fuzzy file finder
-for the GUI.
+really slow (Unite) or didn't support opening the fuzzy finder in the current
+buffer window (FZF only opens the fuzzy finder in a split).  FZF is much faster
+and more feature complete so I highly recommend trying it if split windows
+aren't a problem.
 
 
 Usage
@@ -23,7 +23,7 @@ Niffler differs from other fuzzy file finders in that it doesn't perform a fuzzy
 search by default.  Instead it searches for an exact match of the text typed but
 you can insert a "fuzzy character" to indicate exactly which part of the query
 should use fuzzy matching.  This is probably best explained by an example, the
-fuzzy char in this case will be a "*":
+fuzzy char in this case will be a "\*":
 
 * `oba` will match `foobar` but not `foobuzzbar`
 * `ob*a` will match `foobar` and `foobuzzbar`
@@ -60,9 +60,9 @@ The size of the MRU cache (default 500) can be configured with the variable
 Requirements
 ------------
 
-Niffler currently requires a `find` utility and MacOSX or any \*nix OS for full
-support.  Niffler is not fully supported on Windows, only the NifflerMRU command
-is available.
+Niffler currently requires both the `find` and `grep` utilities and MacOSX or
+any \*nix OS for full support.  Niffler is not fully supported on Windows, only
+the NifflerMRU command is available.
 
 
 Installation
