@@ -100,6 +100,10 @@ function! s:NifflerMRU()
     let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
     let b:niffler_new_file = 0
+
+    " speed up filtering operation
+    let s:old_shelltemp = &shelltemp
+    silent! set noshelltemp
 endfunction
 
 
