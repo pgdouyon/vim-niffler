@@ -76,6 +76,10 @@ function! s:Niffler(vcs_root, new_file,  ...)
     let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
     let b:niffler_new_file = a:new_file
+
+    " speed up filtering operation
+    let s:old_shelltemp = &shelltemp
+    silent! set noshelltemp
 endfunction
 
 
@@ -298,6 +302,7 @@ endfunction
 
 
 function! s:QuitNiffler()
+    let &shelltemp = s:old_shelltemp
     execute "keepalt keepjumps buffer ".b:niffler_alt_buffer
 endfunction
 
