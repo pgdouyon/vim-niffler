@@ -185,7 +185,7 @@ function! s:RefreshCandidateList()
     let cur_prompt = getline(1)
     let new_prompt = empty(matchstr(cur_prompt, b:niffler_last_prompt))
     if new_prompt
-        execute 'silent! 2,$delete'
+        execute 'silent! 2,$delete _'
         call append(1, b:niffler_candidate_list)
     endif
 endfunction
