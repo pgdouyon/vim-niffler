@@ -73,21 +73,9 @@ function! s:Niffler(vcs_root, new_file,  ...)
         return
     endif
     let old_wd = getcwd()
-    if a:vcs_root
-        let vcs = finddir(".git", expand("%:p:h").";")
-        let dir = matchstr(vcs, '\v.*\ze\/\.git')
-    else
-        let dir = (a:0 ? a:1 : "~")
-    endif
-    execute "lchdir! ".dir
+    call s:ChangeWorkingDirectory((a:0 ? a:1 : "~"), a:vcs_root)
 
-    let find_args = join(a:000[1:])
-    if a:new_file
-        let find_args .= ' -type d -print '
-    else
-        let find_args .= ' \( -type f -o -type l \) -print '
-    endif
-    let file_list = s:FindFiles(find_args)
+    let file_list = s:FindFiles(join(a:000[1:]), a:new_file)
     call s:NifflerSetup(file_list, "edit", "split")
 
     let b:niffler_old_wd = old_wd
@@ -109,9 +97,25 @@ function! s:NifflerBuffer()
 endfunction
 
 
-function! s:FindFiles(args)
+function! s:ChangeWorkingDirectory(default_dir, vcs_root)
+    let dir = a:default_dir
+    if a:vcs_root
+        let vcs = finddir(".git", expand("%:p:h").";")
+        let dir = matchstr(vcs, '\v.*\ze\/\.git')
+    endif
+    execute "lchdir! ".dir
+endfunction
+
+
+function! s:FindFiles(args, new_file)
+    let find_args = a:args
+    if a:new_file
+        let find_args .= ' -type d -print '
+    else
+        let find_args .= ' \( -type f -o -type l \) -print '
+    endif
     let hidden_ignore = "-path '*/\.*' -prune -o "
-    let find_cmd = "find * ".hidden_ignore.a:args."2>/dev/null"
+    let find_cmd = "find * " . hidden_ignore . find_args . "2>/dev/null"
     let find_result = system(find_cmd)
     let files = split(find_result, "\n")
     return files
