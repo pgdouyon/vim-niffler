@@ -58,6 +58,8 @@ function! s:NifflerSetup(candidates, open_cmd, split_cmd)
     let b:niffler_candidate_list = a:candidates
     let b:niffler_last_prompt = s:prompt
     let b:niffler_prompt = s:prompt
+    let b:niffler_old_wd = getcwd()
+    let b:niffler_new_file = 0
 
     " speed up filtering operation
     let s:old_shelltemp = &shelltemp
@@ -97,9 +99,6 @@ function! s:NifflerMRU()
     call s:PruneMruList()
     let mru_list =  reverse(copy(s:mru_list))
     call s:NifflerSetup(mru_list, "edit", "split")
-
-    let b:niffler_old_wd = getcwd()
-    let b:niffler_new_file = 0
 endfunction
 
 
@@ -107,9 +106,6 @@ function! s:NifflerBuffer()
     redir => buffers | silent ls | redir END
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
     call s:NifflerSetup(buflist, "buffer", "sbuffer")
-
-    let b:niffler_old_wd = getcwd()
-    let b:niffler_new_file = 0
 endfunction
 
 
