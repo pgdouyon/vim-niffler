@@ -44,6 +44,27 @@ endif
 " Plugin Code
 " ======================================================================
 
+function! s:NifflerSetup(candidates, open_cmd, split_cmd)
+    if !executable("grep")
+        echoerr "Niffler: `grep` command not installed.  Unable to filter candidate list."
+        return
+    endif
+    call s:OpenNifflerBuffer()
+    call s:SetNifflerText(a:candidates)
+    call s:SetNifflerAutocmds()
+    call s:SetNifflerOptions()
+    call s:SetNifflerMappings(a:open_cmd, a:split_cmd)
+    call s:HighlightFirstSelection()
+    let b:niffler_candidate_list = a:candidates
+    let b:niffler_last_prompt = s:prompt
+    let b:niffler_prompt = s:prompt
+
+    " speed up filtering operation
+    let s:old_shelltemp = &shelltemp
+    silent! set noshelltemp
+endfunction
+
+
 function! s:Niffler(vcs_root, new_file,  ...)
     if !executable("find")
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
@@ -65,44 +86,20 @@ function! s:Niffler(vcs_root, new_file,  ...)
         let find_args .= ' \( -type f -o -type l \) -print '
     endif
     let file_list = s:FindFiles(find_args)
-    call s:OpenNifflerBuffer()
-    call s:SetNifflerText(file_list)
-    call s:SetNifflerAutocmds()
-    call s:SetNifflerOptions()
-    call s:SetNifflerMappings("edit", "split")
-    call s:HighlightFirstSelection()
-    let b:niffler_old_wd = old_wd
-    let b:niffler_candidate_list = file_list
-    let b:niffler_last_prompt = ""
-    let b:niffler_prompt = ""
-    let b:niffler_new_file = a:new_file
+    call s:NifflerSetup(file_list, "edit", "split")
 
-    " speed up filtering operation
-    let s:old_shelltemp = &shelltemp
-    silent! set noshelltemp
+    let b:niffler_old_wd = old_wd
+    let b:niffler_new_file = a:new_file
 endfunction
 
 
 function! s:NifflerMRU()
-    call s:OpenNifflerBuffer()
     call s:PruneMruList()
-
     let mru_list =  reverse(copy(s:mru_list))
-    call s:SetNifflerText(mru_list)
+    call s:NifflerSetup(mru_list, "edit", "split")
 
-    call s:SetNifflerAutocmds()
-    call s:SetNifflerOptions()
-    call s:SetNifflerMappings("edit", "split")
-    call s:HighlightFirstSelection()
     let b:niffler_old_wd = getcwd()
-    let b:niffler_candidate_list = mru_list
-    let b:niffler_last_prompt = ""
-    let b:niffler_prompt = ""
     let b:niffler_new_file = 0
-
-    " speed up filtering operation
-    let s:old_shelltemp = &shelltemp
-    silent! set noshelltemp
 endfunction
 
 
