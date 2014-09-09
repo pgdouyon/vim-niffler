@@ -101,7 +101,7 @@ function! s:ChangeWorkingDirectory(default_dir, vcs_root)
     let dir = a:default_dir
     if a:vcs_root
         let vcs = finddir(".git", expand("%:p:h").";")
-        let dir = matchstr(vcs, '\v.*\ze\/\.git')
+        let dir = fnamemodify(vcs, ":h")
     endif
     execute "lchdir! ".dir
 endfunction
