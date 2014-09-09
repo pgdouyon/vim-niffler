@@ -375,9 +375,8 @@ command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
 
 augroup niffler
     autocmd!
-    autocmd BufLeave * call <SID>UpdateMruList(expand("%:p"))
-    autocmd CursorHold * call <SID>PruneMruList()
-    autocmd VimLeave * call <SID>WriteMruCacheFile()
+    autocmd BufReadPost * call <SID>UpdateMruList(expand("%:p"))
+    autocmd CursorHold * call <SID>WriteMruCacheFile()
 augroup END
 
 let &cpoptions = s:save_cpo
