@@ -69,7 +69,7 @@ function! s:Niffler(vcs_root, new_file,  ...)
     call s:SetNifflerText(file_list)
     call s:SetNifflerAutocmds()
     call s:SetNifflerOptions()
-    call s:SetNifflerMappings()
+    call s:SetNifflerMappings("edit", "split")
     call s:HighlightFirstSelection()
     let b:niffler_old_wd = old_wd
     let b:niffler_candidate_list = file_list
@@ -92,7 +92,7 @@ function! s:NifflerMRU()
 
     call s:SetNifflerAutocmds()
     call s:SetNifflerOptions()
-    call s:SetNifflerMappings()
+    call s:SetNifflerMappings("edit", "split")
     call s:HighlightFirstSelection()
     let b:niffler_old_wd = getcwd()
     let b:niffler_candidate_list = mru_list
@@ -241,30 +241,35 @@ function! s:SetNifflerOptions()
 endfunction
 
 
-function! s:SetNifflerMappings()
+function! s:SetNifflerMappings(open_cmd, split_cmd)
     let ins_del_cmds = ["<BS>", "<Del>", "<C-h>", "<C-w>", "<C-u>"]
     for cmd in ins_del_cmds
         execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd, cmd)
     endfor
 
+    let open = a:open_cmd
+    let tab = "tab ".a:split_cmd
+    let vert = "vertical ".a:split_cmd
+    let split = a:split_cmd
+
     inoremap <buffer> <C-J> <Down>
     inoremap <buffer> <C-K> <Up>
-    inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection("edit")<CR>
-    inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection("edit")<CR>
-    inoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection("tabedit")<CR>
-    inoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection("vsplit")<CR>
-    inoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection("split")<CR>
     inoremap <buffer> <C-G> <Esc>:call <SID>QuitNiffler()<CR>
+    execute printf("inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection('%s')<CR>", open)
+    execute printf("inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection('%s')<CR>", open)
+    execute printf("inoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection('%s')<CR>", tab)
+    execute printf("inoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection('%s')<CR>", vert)
+    execute printf("inoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection('%s')<CR>", split)
 
     nnoremap <buffer> <C-J> <Down>
     nnoremap <buffer> <C-K> <Up>
-    nnoremap <buffer> o :<C-u>call <SID>OpenSelection("edit")<CR>
-    nnoremap <buffer> O :<C-u>call <SID>OpenSelection("edit")<CR>
-    nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection("edit")<CR>
-    nnoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection("tabedit")<CR>
-    nnoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection("vsplit")<CR>
-    nnoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection("split")<CR>
     nnoremap <buffer> q :<C-u>call <SID>QuitNiffler()<CR>
+    execute printf("nnoremap <buffer> o :<C-u>call <SID>OpenSelection('%s')<CR>", open)
+    execute printf("nnoremap <buffer> O :<C-u>call <SID>OpenSelection('%s')<CR>", open)
+    execute printf("nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection('%s')<CR>", open)
+    execute printf("nnoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection('%s')<CR>", tab)
+    execute printf("nnoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection('%s')<CR>", vert)
+    execute printf("nnoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection('%s')<CR>", split)
 endfunction
 
 
