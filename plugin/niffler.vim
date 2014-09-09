@@ -208,9 +208,8 @@ function! s:FilterCandidateList()
     let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
     let search_patterns = split(filter_regex)
     let map_expr = '"grep -E".((v:val =~# "\\u") ? "" : "i")." -e ".v:val'
-    call map(search_patterns, map_expr)
-    let filter = join(search_patterns, " | ")
-    execute 'silent! 2,$! '.filter
+    let grep_filter = join(map(search_patterns, map_expr), " | ")
+    execute 'silent! 2,$! '.grep_filter
 endfunction
 
 
