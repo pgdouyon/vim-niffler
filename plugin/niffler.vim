@@ -103,6 +103,16 @@ function! s:NifflerMRU()
 endfunction
 
 
+function! s:NifflerBuffer()
+    redir => buffers | silent ls | redir END
+    let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
+    call s:NifflerSetup(buflist, "buffer", "sbuffer")
+
+    let b:niffler_old_wd = getcwd()
+    let b:niffler_new_file = 0
+endfunction
+
+
 function! s:FindFiles(args)
     let hidden_ignore = "-path '*/\.*' -prune -o "
     let find_cmd = "find * ".hidden_ignore.a:args."2>/dev/null"
@@ -368,6 +378,7 @@ command! -nargs=* -complete=dir NifflerVCS call <SID>Niffler(1, 0, <f-args>)
 command! -nargs=* -complete=dir NifflerNew call <SID>Niffler(0, 1, <f-args>)
 command! -nargs=* -complete=dir NifflerNewVCS call <SID>Niffler(1, 1, <f-args>)
 command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
+command! -nargs=0 NifflerBuffer call <SID>NifflerBuffer()
 
 
 " ======================================================================
