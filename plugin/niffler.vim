@@ -87,16 +87,15 @@ function! s:NifflerMRU()
     call s:OpenNifflerBuffer()
     call s:PruneMruList()
 
-    call reverse(s:mru_list)
-    call s:SetNifflerText(s:mru_list)
-    call reverse(s:mru_list)
+    let mru_list =  reverse(copy(s:mru_list))
+    call s:SetNifflerText(mru_list)
 
     call s:SetNifflerAutocmds()
     call s:SetNifflerOptions()
     call s:SetNifflerMappings()
     call s:HighlightFirstSelection()
     let b:niffler_old_wd = getcwd()
-    let b:niffler_candidate_list = s:mru_list
+    let b:niffler_candidate_list = mru_list
     let b:niffler_last_prompt = ""
     let b:niffler_prompt = ""
     let b:niffler_new_file = 0
