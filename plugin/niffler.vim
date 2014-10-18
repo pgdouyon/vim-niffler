@@ -46,7 +46,7 @@ endif
 
 function! s:NifflerSetup(candidates, open_cmd, split_cmd)
     if !executable("grep")
-        echoerr "Niffler: `grep` command not installed.  Unable to filter candidate list."
+        throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
         return
     endif
     call s:OpenNifflerBuffer()
