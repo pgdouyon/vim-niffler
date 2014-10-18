@@ -29,7 +29,7 @@ fuzzy char in this case will be a "\*":
 * `ob*a` will match `foobar` and `foobuzzbar`
 * `f*ob*ar` will match `foobar`, `foobuzzbar`, and `fizzboobar`, but not `foobaz`
 
-The default fuzzy char is `;` but can be changed with `g:niffler_fuzzy_char`
+The default fuzzy char is `*` but can be changed with `g:niffler_fuzzy_char`
 
 The beginning and end of the query are fuzzy by default but you can use `^` and
 `$` to specify an exact match at either end:

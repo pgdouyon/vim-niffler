@@ -36,7 +36,7 @@ if !exists("g:niffler_mru_max_history")
 endif
 
 if !exists("g:niffler_fuzzy_char")
-    let g:niffler_fuzzy_char = ";"
+    let g:niffler_fuzzy_char = "*"
 endif
 
 
