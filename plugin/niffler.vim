@@ -203,11 +203,11 @@ function! s:FilterCandidateList()
     if strlen(prompt) <= 0
         return
     endif
-    let special_chars = substitute('.*+?[]{}()|\', '\V'.g:niffler_fuzzy_char, '', '')
+    let special_chars = substitute('.*[]\', '\V'.g:niffler_fuzzy_char, '', '')
     let filter_regex = escape(prompt, special_chars)
     let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
     let search_patterns = split(filter_regex)
-    let map_expr = '"grep -E".((v:val =~# "\\u") ? "" : "i")." -e ".v:val'
+    let map_expr = '"grep".((v:val =~# "\\u") ? "" : " -i")." -e ".v:val'
     let grep_filter = join(map(search_patterns, map_expr), " | ")
     execute 'silent! 2,$! '.grep_filter
 endfunction
