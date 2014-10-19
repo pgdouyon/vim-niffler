@@ -37,6 +37,11 @@ The beginning and end of the query are fuzzy by default but you can use `^` and
 * `^foo` will match `foobar` but not `buzzfoobar`
 * `foo$` will match `buzzfoo` but not `buzzfoobar`
 
+Specify a command to be run on the open file by appending a ":<CMD>" to the end
+of the search query.
+
+* `ob*a:45` will open a file `foobar` and jump to line 45
+* `ob*a:diffthis` will open a file `foobar` and add the file to the diff windows
 
 Niffler has several different modes:
 

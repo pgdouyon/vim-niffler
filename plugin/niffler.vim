@@ -198,18 +198,33 @@ endfunction
 
 
 function! s:FilterCandidateList()
-    let prompt_line = getline(1)
-    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\.\+')
-    if strlen(prompt) <= 0
+    let query = s:GetQuery()
+    if strlen(query) <= 0
         return
     endif
     let special_chars = substitute('.*[]\', '\V'.g:niffler_fuzzy_char, '', '')
-    let filter_regex = escape(prompt, special_chars)
+    let filter_regex = escape(query, special_chars)
     let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
     let search_patterns = split(filter_regex)
     let map_expr = '"grep".((v:val =~# "\\u") ? "" : " -i")." -e ".v:val'
     let grep_filter = join(map(search_patterns, map_expr), " | ")
     execute 'silent! 2,$! '.grep_filter
+endfunction
+
+
+function! s:GetQuery()
+    let prompt_line = getline(1)
+    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\.\+')
+    let query = get(split(prompt, ":"), 0, "")
+    return query
+endfunction
+
+
+function! s:GetCommand()
+    let prompt_line = getline(1)
+    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\.\+')
+    let command = get(split(prompt, ":"), 1, "")
+    return command
 endfunction
 
 
@@ -306,6 +321,8 @@ function! s:OpenSelection(cmd)
         call cursor(2, 1)
     endif
 
+    let old_wd = b:niffler_old_wd
+    let command = s:GetCommand()
     let file = getline(".")
     let file = substitute(file, '\v\_^\s*', '', '')
     let file = substitute(file, '\v\s*$', '', '')
@@ -317,10 +334,10 @@ function! s:OpenSelection(cmd)
         endif
         call system("touch ".file)
     endif
-    let old_wd = b:niffler_old_wd
     call s:QuitNiffler()
     execute a:cmd." ".file
     execute "lchdir! ".old_wd
+    execute "normal! ".command."G"
 endfunction
 
 
