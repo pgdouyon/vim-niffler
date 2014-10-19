@@ -258,8 +258,8 @@ function! s:SetNifflerMappings(open_cmd, split_cmd)
     let vert = "vertical ".a:split_cmd
     let split = a:split_cmd
 
-    inoremap <buffer> <C-J> <Down>
-    inoremap <buffer> <C-K> <Up>
+    inoremap <buffer> <C-J> <Esc>:call <SID>NifflerNextLine(1)<CR>
+    inoremap <buffer> <C-K> <Esc>:call <SID>NifflerNextLine(-1)<CR>
     inoremap <buffer> <C-G> <Esc>:call <SID>QuitNiffler()<CR>
     execute printf("inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection('%s')<CR>", open)
     execute printf("inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection('%s')<CR>", open)
@@ -267,8 +267,8 @@ function! s:SetNifflerMappings(open_cmd, split_cmd)
     execute printf("inoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection('%s')<CR>", vert)
     execute printf("inoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection('%s')<CR>", split)
 
-    nnoremap <buffer> <C-J> <Down>
-    nnoremap <buffer> <C-K> <Up>
+    nnoremap <buffer> <C-J> <Esc>:call <SID>NifflerNextLine(1)<CR>
+    nnoremap <buffer> <C-K> <Esc>:call <SID>NifflerNextLine(-1)<CR>
     nnoremap <buffer> q :<C-u>call <SID>QuitNiffler()<CR>
     execute printf("nnoremap <buffer> o :<C-u>call <SID>OpenSelection('%s')<CR>", open)
     execute printf("nnoremap <buffer> O :<C-u>call <SID>OpenSelection('%s')<CR>", open)
@@ -288,6 +288,15 @@ endfunction
 function! s:HighlightSelectionLine()
     let color = (&background ==? "light") ? "cyan" : "darkcyan"
     execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
+endfunction
+
+
+function! s:NifflerNextLine(direction)
+    let [bufnum, lnum, cnum, offset] = getpos(".")
+    if line(".") == (2 - a:direction)
+        let lnum = 2
+    endif
+    call setpos(".", [bufnum, lnum + a:direction, cnum, offset])
 endfunction
 
 
