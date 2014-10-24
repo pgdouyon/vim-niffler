@@ -56,9 +56,9 @@ function! s:NifflerSetup(candidates, open_cmd, split_cmd)
     call s:SetNifflerMappings(a:open_cmd, a:split_cmd)
     call s:HighlightFirstSelection()
     let b:niffler_candidate_list = a:candidates
-    let b:niffler_last_prompt = s:prompt
-    let b:niffler_prompt = s:prompt
-    let b:niffler_old_wd = getcwd()
+    let b:niffler_prev_prompt = s:prompt
+    let b:niffler_current_prompt = s:prompt
+    let b:niffler_save_wd = getcwd()
     let b:niffler_new_file = 0
 
     " speed up filtering operation
@@ -72,14 +72,14 @@ function! s:Niffler(vcs_root, new_file,  ...)
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
         return
     endif
-    let old_wd = getcwd()
+    let save_wd = getcwd()
     call s:ChangeWorkingDirectory((a:0 ? a:1 : "~"), a:vcs_root)
 
     let file_list = s:FindFiles(join(a:000[1:]), a:new_file)
     call s:NifflerSetup(file_list, "edit", "split")
 
-    let b:niffler_old_wd = old_wd
-    let b:niffler_new_file = a:new_file
+    let b:niffler_save_wd = save_wd
+    let b:niffler_new_file = l:new
 endfunction
 
 
@@ -125,7 +125,7 @@ endfunction
 function! s:OpenNifflerBuffer()
     let alt_buffer = bufname("%")
     keepalt keepjumps edit __Niffler__
-    let b:niffler_alt_buffer = alt_buffer
+    let b:niffler_save_alt_buffer = alt_buffer
 endfunction
 
 
@@ -157,10 +157,10 @@ function! s:OnCursorMovedI()
     elseif cursor_out_of_bounds
         call cursor(1, 3)
     endif
-    let prompt_changed = (b:niffler_prompt !=# getline(1))
+    let prompt_changed = (b:niffler_current_prompt !=# getline(1))
     if prompt_changed
-        let b:niffler_last_prompt = b:niffler_prompt
-        let b:niffler_prompt = getline(1)
+        let b:niffler_prev_prompt = b:niffler_current_prompt
+        let b:niffler_current_prompt = getline(1)
         call s:RedrawScreen()
     endif
 endfunction
@@ -181,15 +181,15 @@ function! s:RedrawPrompt()
         let re = '\v\_^\s*\>\s*'
         let prompt_line = substitute(prompt_line, re, '', '')
         call setline(1, s:prompt . prompt_line)
-        let b:niffler_last_prompt = b:niffler_prompt
-        let b:niffler_prompt = getline(1)
+        let b:niffler_prev_prompt = b:niffler_current_prompt
+        let b:niffler_current_prompt = getline(1)
     endif
 endfunction
 
 
 function! s:RefreshCandidateList()
     let cur_prompt = getline(1)
-    let new_prompt = empty(matchstr(cur_prompt, b:niffler_last_prompt))
+    let new_prompt = empty(matchstr(cur_prompt, b:niffler_prev_prompt))
     if new_prompt
         execute 'silent! 2,$delete _'
         call append(1, b:niffler_candidate_list)
@@ -321,7 +321,7 @@ function! s:OpenSelection(cmd)
         call cursor(2, 1)
     endif
 
-    let old_wd = b:niffler_old_wd
+    let old_wd = b:niffler_save_wd
     let command = s:GetCommand()
     let file = getline(".")
     let file = substitute(file, '\v\_^\s*', '', '')
@@ -343,7 +343,7 @@ endfunction
 
 function! s:QuitNiffler()
     let &shelltemp = s:old_shelltemp
-    execute "keepalt keepjumps buffer ".b:niffler_alt_buffer
+    execute "keepalt keepjumps buffer ".b:niffler_save_alt_buffer
 endfunction
 
 
