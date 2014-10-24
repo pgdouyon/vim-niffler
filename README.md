@@ -48,15 +48,17 @@ Niffler has several different modes:
 | Command         | Description                                                           |
 | --------------- | --------------------------------------------------------------------- |
 | `Niffler`       | Fuzzy file search                                                     |
-| `NifflerVCS`    | Fuzzy file search from git root directory of current file             |
-| `NifflerNew`    | Fuzzy search for directory and enter new file name                    |
-| `NifflerNewVCS` | Same as `NifflerNew` starting from git root directory of current file |
 | `NifflerMRU`    | Fuzzy file search on MRU cache                                        |
+| `NifflerBuffer` | Fuzzy file search on buffer list                                      |
 
-All commands except for `NifflerMRU` take optional arguments:
+The `Niffler` command takes any number of optional arguments and has the following structure:
 
-* Directory to search from (default: ~)
-* GNU find arguments separated by spaces
+`Niffler [-vcs] [-new] [-all] [DIRECTORY]`
+
+* -vcs: search from git root directory of current file
+* -new: search for directory and enter new file name
+* -all: search all files/directories, including hidden and any ignored files
+* Directory to search from
 
 The size of the MRU cache (default 500) can be configured with the variable
 `g:niffler_mru_max_history`.
@@ -67,7 +69,7 @@ Requirements
 
 Niffler currently requires both the `find` and `grep` utilities and MacOSX or
 any \*nix OS for full support.  Niffler is not fully supported on Windows, only
-the NifflerMRU command is available.
+the NifflerMRU and NifflerBuffer commands are available.
 
 
 Installation

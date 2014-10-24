@@ -67,15 +67,21 @@ function! s:NifflerSetup(candidates, open_cmd, split_cmd)
 endfunction
 
 
-function! s:Niffler(vcs_root, new_file,  ...)
+function! s:Niffler(args)
     if !executable("find")
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
         return
     endif
-    let save_wd = getcwd()
-    call s:ChangeWorkingDirectory((a:0 ? a:1 : "~"), a:vcs_root)
+    let dir = matchstr(a:args, '\s\+\zs[^-].*$')
+    let opts = matchstr(a:args, '\%(-\S\+\s*\)\+')
+    let new = (opts =~# "-new")
+    let vcs = (opts =~# "-vcs")
+    let all = (opts =~# "-all")
 
-    let file_list = s:FindFiles(join(a:000[1:]), a:new_file)
+    let save_wd = getcwd()
+    call s:ChangeWorkingDirectory((!empty(dir) ? dir : "~"), vcs)
+
+    let file_list = s:FindFiles(all, new)
     call s:NifflerSetup(file_list, "edit", "split")
 
     let b:niffler_save_wd = save_wd
@@ -107,15 +113,20 @@ function! s:ChangeWorkingDirectory(default_dir, vcs_root)
 endfunction
 
 
-function! s:FindFiles(args, new_file)
-    let find_args = a:args
-    if a:new_file
-        let find_args .= ' -type d -print '
+function! s:FindFiles(unrestricted, new_file)
+    if a:unrestricted
+        let find_args = "-path '*/\.git*' -prune -o "
     else
-        let find_args .= ' \( -type f -o -type l \) -print '
+        let find_args = "-path '*/\.*' -prune -o "
     endif
-    let hidden_ignore = "-path '*/\.*' -prune -o "
-    let find_cmd = "find * " . hidden_ignore . find_args . "2>/dev/null"
+
+    if a:new_file
+        let find_args .= '-type d -print '
+    else
+        let find_args .= '\( -type f -o -type l \) -print '
+    endif
+
+    let find_cmd = "find * " . find_args . "2>/dev/null"
     let find_result = system(find_cmd)
     let files = split(find_result, "\n")
     return files
@@ -398,10 +409,7 @@ endfunction
 " Commands
 " ======================================================================
 
-command! -nargs=* -complete=dir Niffler call <SID>Niffler(0, 0, <f-args>)
-command! -nargs=* -complete=dir NifflerVCS call <SID>Niffler(1, 0, <f-args>)
-command! -nargs=* -complete=dir NifflerNew call <SID>Niffler(0, 1, <f-args>)
-command! -nargs=* -complete=dir NifflerNewVCS call <SID>Niffler(1, 1, <f-args>)
+command! -nargs=* -complete=dir Niffler call <SID>Niffler(<q-args>)
 command! -nargs=0 NifflerMRU call <SID>NifflerMRU()
 command! -nargs=0 NifflerBuffer call <SID>NifflerBuffer()
 
