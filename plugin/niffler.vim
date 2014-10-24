@@ -56,6 +56,8 @@ function! s:NifflerSetup(candidates, open_cmd, split_cmd)
     call s:SetNifflerMappings(a:open_cmd, a:split_cmd)
     call s:HighlightFirstSelection()
     let b:niffler_candidate_list = a:candidates
+    let b:niffler_candidate_string = join(a:candidates, "\n")
+    let b:niffler_candidate_limit = winheight(0)
     let b:niffler_prev_prompt = s:prompt
     let b:niffler_current_prompt = s:prompt
     let b:niffler_save_wd = getcwd()
@@ -204,6 +206,7 @@ function! s:RefreshCandidateList()
     if new_prompt
         execute 'silent! 2,$delete _'
         call append(1, b:niffler_candidate_list)
+        let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
     endif
 endfunction
 
@@ -217,9 +220,11 @@ function! s:FilterCandidateList()
     let filter_regex = escape(query, special_chars)
     let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
     let search_patterns = split(filter_regex)
-    let map_expr = '"grep".((v:val =~# "\\u") ? "" : " -i")." -e ".v:val'
+    let map_expr = '"grep -m '.b:niffler_candidate_limit.'".((v:val =~# "\\u") ? "" : " -i")." -e ".v:val'
     let grep_filter = join(map(search_patterns, map_expr), " | ")
-    execute 'silent! 2,$! '.grep_filter
+    let candidates = system(grep_filter, b:niffler_candidate_string)
+    silent! 2,$ delete
+    call append(1, split(candidates, "\n"))
 endfunction
 
 
