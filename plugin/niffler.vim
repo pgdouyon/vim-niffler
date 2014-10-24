@@ -62,10 +62,6 @@ function! s:NifflerSetup(candidates, open_cmd, split_cmd)
     let b:niffler_current_prompt = s:prompt
     let b:niffler_save_wd = getcwd()
     let b:niffler_new_file = 0
-
-    " speed up filtering operation
-    let s:old_shelltemp = &shelltemp
-    silent! set noshelltemp
 endfunction
 
 
@@ -358,7 +354,6 @@ endfunction
 
 
 function! s:QuitNiffler()
-    let &shelltemp = s:old_shelltemp
     execute "keepalt keepjumps buffer ".b:niffler_save_alt_buffer
 endfunction
 
