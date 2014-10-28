@@ -151,8 +151,6 @@ endfunction
 
 
 function! s:SetNifflerOptions()
-    " TODO: scrolloff and cursorline
-    " TODO: use cyan/darkcyan for guibg and ctermbg for cursorline
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
@@ -160,11 +158,19 @@ function! s:SetNifflerOptions()
     silent! setlocal colorcolumn=0
     silent! setlocal buflisted noswapfile nospell nofoldenable noreadonly nowrap
     silent! setlocal nocursorcolumn nonumber norelativenumber
+
+    redir => cursorline
+    highlight CursorLine
+    redir END
+
+    let b:niffler_guibg = matchstr(cursorline, 'guibg=\zs\S\+')
+    let b:niffler_ctermbg = matchstr(cursorline, 'ctermbg=\zs\S\+')
+    let color = (&background ==? "light") ? "cyan" : "darkcyan"
+    execute printf("highlight CursorLine ctermbg=%s guibg=%s", color, color)
 endfunction
 
 
 function! s:KeypressEventLoop()
-    " TODO: move the cursor to the bottom of the screen
     call cursor(line("$"), 1)
     let prompt = ""
     redraw
@@ -293,6 +299,9 @@ endfunction
 
 function! s:QuitNiffler(prompt)
     unlet b:niffler_isactive
+    let ctermbg = b:niffler_ctermbg
+    let guibg = b:niffler_guibg
+    execute printf("highlight CursorLine ctermbg=%s guibg=%s", ctermbg, guibg)
     execute "keepalt keepjumps buffer ".b:niffler_origin_buffer
 endfunction
 
