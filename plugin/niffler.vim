@@ -48,7 +48,7 @@ function! s:Niffler(args)
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
         return
     endif
-    let dir = matchstr(a:args, '\s\+\zs[^-].*$')
+    let dir = matchstr(a:args, '\%(\s*-\S\+\s*\)*\zs[^-].*$')
     let opts = matchstr(a:args, '\%(-\S\+\s*\)\+')
     let new = (opts =~# "-new")
     let vcs = (opts =~# "-vcs")
@@ -299,10 +299,12 @@ endfunction
 
 function! s:QuitNiffler(prompt)
     unlet b:niffler_isactive
+    let save_wd = b:niffler_save_wd
     let ctermbg = b:niffler_ctermbg
     let guibg = b:niffler_guibg
     execute printf("highlight CursorLine ctermbg=%s guibg=%s", ctermbg, guibg)
     execute "keepalt keepjumps buffer ".b:niffler_origin_buffer
+    execute "lchdir! " . save_wd
 endfunction
 
 
