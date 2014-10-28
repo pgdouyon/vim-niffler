@@ -64,6 +64,20 @@ The size of the MRU cache (default 500) can be configured with the variable
 `g:niffler_mru_max_history`.
 
 
+### Key Mappings
+
+| Key                       | Action                                   |
+| ------------------------- | ---------------------------------------- |
+| `<C-K>`                   | Move up one line in the candidate list   |
+| `<C-J>`                   | Move down one line in the candidate list |
+| `<CR>`                    | Open selection in current window         |
+| `<C-S>`                   | Open selection in new horizontal split   |
+| `<C-V>`                   | Open selection in new vertical split     |
+| `<C-T>`                   | Open selection in new tab window         |
+| `<Esc>`, `<C-[>`, `<C-C>` | Quit Niffler                             |
+
+
+
 Requirements
 ------------
 
