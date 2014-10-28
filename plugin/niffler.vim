@@ -31,21 +31,6 @@ if !filereadable(s:mru_cache_file)
 endif
 let s:mru_list = readfile(s:mru_cache_file)
 
-let s:function_map = {
-    \"\<BS>"  : function("<SID>Backspace"),
-    \"\<C-H>" : function("<SID>Backspace"),
-    \"\<C-W>" : function("<SID>BackwardKillWord"),
-    \"\<C-U>" : function("<SID>BackwardKillLine"),
-    \"\<C-J>" : function("<SID>MoveNextLine"),
-    \"\<C-K>" : function("<SID>MovePrevLine"),
-    \"\<CR>"  : function("<SID>OpenCurrentWindow"),
-    \"\<C-S>" : function("<SID>OpenSplitWindow"),
-    \"\<C-V>" : function("<SID>OpenVertSplit"),
-    \"\<C-T>" : function("<SID>OpenTabWindow"),
-    \"\<Esc>" : function("<SID>QuitNiffler"),
-    \"\<C-G>" : function("<SID>QuitNiffler")
-    \}
-
 if !exists("g:niffler_mru_max_history")
     let g:niffler_mru_max_history = 500
 endif
@@ -166,6 +151,8 @@ endfunction
 
 
 function! s:SetNifflerOptions()
+    " TODO: scrolloff and cursorline
+    " TODO: use cyan/darkcyan for guibg and ctermbg for cursorline
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
@@ -177,6 +164,7 @@ endfunction
 
 
 function! s:KeypressEventLoop()
+    " TODO: move the cursor to the bottom of the screen
     call cursor(line("$"), 1)
     let prompt = ""
     redraw
@@ -307,6 +295,22 @@ function! s:QuitNiffler(prompt)
     unlet b:niffler_isactive
     execute "keepalt keepjumps buffer ".b:niffler_origin_buffer
 endfunction
+
+
+let s:function_map = {
+    \"\<BS>"  : function("<SID>Backspace"),
+    \"\<C-H>" : function("<SID>Backspace"),
+    \"\<C-W>" : function("<SID>BackwardKillWord"),
+    \"\<C-U>" : function("<SID>BackwardKillLine"),
+    \"\<C-J>" : function("<SID>MoveNextLine"),
+    \"\<C-K>" : function("<SID>MovePrevLine"),
+    \"\<CR>"  : function("<SID>OpenCurrentWindow"),
+    \"\<C-S>" : function("<SID>OpenSplitWindow"),
+    \"\<C-V>" : function("<SID>OpenVertSplit"),
+    \"\<C-T>" : function("<SID>OpenTabWindow"),
+    \"\<Esc>" : function("<SID>QuitNiffler"),
+    \"\<C-G>" : function("<SID>QuitNiffler")
+    \}
 
 
 " ======================================================================
