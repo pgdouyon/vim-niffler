@@ -31,6 +31,21 @@ if !filereadable(s:mru_cache_file)
 endif
 let s:mru_list = readfile(s:mru_cache_file)
 
+let s:function_map = {
+    \"\<BS>"  : function("<SID>Backspace"),
+    \"\<C-H>" : function("<SID>Backspace"),
+    \"\<C-W>" : function("<SID>BackwardKillWord"),
+    \"\<C-U>" : function("<SID>BackwardKillLine"),
+    \"\<C-J>" : function("<SID>MoveNextLine"),
+    \"\<C-K>" : function("<SID>MovePrevLine"),
+    \"\<CR>"  : function("<SID>OpenCurrentWindow"),
+    \"\<C-S>" : function("<SID>OpenSplitWindow"),
+    \"\<C-V>" : function("<SID>OpenVertSplit"),
+    \"\<C-T>" : function("<SID>OpenTabWindow"),
+    \"\<Esc>" : function("<SID>QuitNiffler"),
+    \"\<C-G>" : function("<SID>QuitNiffler")
+    \}
+
 if !exists("g:niffler_mru_max_history")
     let g:niffler_mru_max_history = 500
 endif
@@ -43,28 +58,6 @@ endif
 " ======================================================================
 " Plugin Code
 " ======================================================================
-
-function! s:NifflerSetup(candidates, open_cmd, split_cmd)
-    if !executable("grep")
-        throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
-        return
-    endif
-    call s:OpenNifflerBuffer()
-    call s:SetNifflerText(a:candidates)
-    call s:SetNifflerAutocmds()
-    call s:SetNifflerOptions()
-    call s:SetNifflerMappings(a:open_cmd, a:split_cmd)
-    call s:HighlightFirstSelection()
-    let b:niffler_candidate_list = a:candidates
-    let b:niffler_candidate_string = join(a:candidates, "\n")
-    let b:niffler_candidate_limit = winheight(0)
-    let b:niffler_prev_prompt = s:prompt
-    let b:niffler_current_prompt = s:prompt
-    let b:niffler_save_wd = getcwd()
-    let b:niffler_new_file = 0
-endfunction
-
-
 function! s:Niffler(args)
     if !executable("find")
         echoerr "Niffler: `find` command not installed. Unable to build list of files."
@@ -80,24 +73,40 @@ function! s:Niffler(args)
     call s:ChangeWorkingDirectory((!empty(dir) ? dir : "~"), vcs)
 
     let file_list = s:FindFiles(all, new)
-    call s:NifflerSetup(file_list, "edit", "split")
+    call s:NifflerSetup(file_list)
 
     let b:niffler_save_wd = save_wd
-    let b:niffler_new_file = l:new
+    let b:niffler_new_file = new
+    let b:niffler_open_cmd = "edit"
+    let b:niffler_split_cmd = "split"
+
+    call s:KeypressEventLoop()
 endfunction
 
 
 function! s:NifflerMRU()
     call s:PruneMruList()
     let mru_list =  reverse(copy(s:mru_list))
-    call s:NifflerSetup(mru_list, "edit", "split")
+    call s:NifflerSetup(mru_list)
+    let b:niffler_save_wd = getcwd()
+    let b:niffler_new_file = 0
+    let b:niffler_open_cmd = "edit"
+    let b:niffler_split_cmd = "split"
+
+    call s:KeypressEventLoop()
 endfunction
 
 
 function! s:NifflerBuffer()
     redir => buffers | silent ls | redir END
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
-    call s:NifflerSetup(buflist, "buffer", "sbuffer")
+    call s:NifflerSetup(buflist)
+    let b:niffler_save_wd = getcwd()
+    let b:niffler_new_file = 0
+    let b:niffler_open_cmd = "buffer"
+    let b:niffler_split_cmd = "sbuffer"
+
+    call s:KeypressEventLoop()
 endfunction
 
 
@@ -131,135 +140,28 @@ function! s:FindFiles(unrestricted, new_file)
 endfunction
 
 
-function! s:OpenNifflerBuffer()
-    let alt_buffer = bufname("%")
-    keepalt keepjumps edit __Niffler__
-    let b:niffler_save_alt_buffer = alt_buffer
-endfunction
-
-
-function! s:SetNifflerText(file_list)
-    call setline(1, s:prompt)
-    call append(1, a:file_list)
-    call cursor(1,3)
-    startinsert!
-endfunction
-
-
-function! s:SetNifflerAutocmds()
-    autocmd CursorMovedI <buffer> call <SID>OnCursorMovedI()
-    autocmd CursorMoved <buffer> call <SID>OnCursorMoved()
-    autocmd InsertEnter <buffer> call <SID>OnInsertEnter()
-    autocmd BufLeave <buffer> call <SID>OnBufLeave()
-endfunction
-
-
-" ======================================================================
-" Handler Functions
-" ======================================================================
-
-function! s:OnCursorMovedI()
-    let is_prompt_line = (line(".") == 1)
-    let cursor_out_of_bounds = col(".") < 3
-    if !is_prompt_line
-        call feedkeys("\e", "nt")
-    elseif cursor_out_of_bounds
-        call cursor(1, 3)
-    endif
-    let prompt_changed = (b:niffler_current_prompt !=# getline(1))
-    if prompt_changed
-        let b:niffler_prev_prompt = b:niffler_current_prompt
-        let b:niffler_current_prompt = getline(1)
-        call s:RedrawScreen()
-    endif
-endfunction
-
-
-function! s:RedrawScreen()
-    call s:RedrawPrompt()
-    call s:RefreshCandidateList()
-    call s:FilterCandidateList()
-    call cursor(1,3)
-    startinsert!
-endfunction
-
-
-function! s:RedrawPrompt()
-    let prompt_line = getline(1)
-    if prompt_line !~ '\V\_^' . s:prompt
-        let re = '\v\_^\s*\>\s*'
-        let prompt_line = substitute(prompt_line, re, '', '')
-        call setline(1, s:prompt . prompt_line)
-        let b:niffler_prev_prompt = b:niffler_current_prompt
-        let b:niffler_current_prompt = getline(1)
-    endif
-endfunction
-
-
-function! s:RefreshCandidateList()
-    let cur_prompt = getline(1)
-    let new_prompt = empty(matchstr(cur_prompt, b:niffler_prev_prompt))
-    if new_prompt
-        execute 'silent! 2,$delete _'
-        call append(1, b:niffler_candidate_list)
-        let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
-    endif
-endfunction
-
-
-function! s:FilterCandidateList()
-    let query = s:GetQuery()
-    if strlen(query) <= 0
+function! s:NifflerSetup(candidates)
+    if !executable("grep")
+        throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
         return
     endif
-    let special_chars = substitute('.*[]\', '\V'.g:niffler_fuzzy_char, '', '')
-    let filter_regex = escape(query, special_chars)
-    let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
-    let search_patterns = split(filter_regex)
-    let map_expr = '"grep -m '.b:niffler_candidate_limit.'".((v:val =~# "\\u") ? "" : " -i")." -e ".v:val'
-    let grep_filter = join(map(search_patterns, map_expr), " | ")
-    let candidates = system(grep_filter, b:niffler_candidate_string)
-    silent! 2,$ delete
-    call append(1, split(candidates, "\n"))
+    call s:OpenNifflerBuffer()
+    call s:SetNifflerOptions()
+    call append(0, a:candidates[0:winheight(0)-1])
+    $ delete _
+
+    let b:niffler_candidate_list = a:candidates
+    let b:niffler_candidate_string = join(a:candidates, "\n")
+    let b:niffler_candidate_limit = winheight(0)
+    let b:niffler_new_file = 0
+    let b:niffler_isactive = 1
 endfunction
 
 
-function! s:GetQuery()
-    let prompt_line = getline(1)
-    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\.\+')
-    let query = get(split(prompt, ":"), 0, "")
-    return query
-endfunction
-
-
-function! s:GetCommand()
-    let prompt_line = getline(1)
-    let prompt = matchstr(prompt_line, '\V'.s:prompt.'\s\*\zs\.\+')
-    let command = get(split(prompt, ":"), 1, "")
-    return command
-endfunction
-
-
-function! s:OnCursorMoved()
-    let line = line(".")
-    if line == 1
-        let line = 2
-    endif
-    call s:HighlightSelectionLine()
-    silent! call matchdelete(s:match_id)
-    let s:match_id = matchadd("nifflerSelectionLine", '\%'.line.'l.*')
-endfunction
-
-
-function! s:OnInsertEnter()
-    let is_prompt_line = (line(".") == 1)
-    let cursor_out_of_bounds = col(".") < 3
-    if !is_prompt_line
-        call feedkeys("\e", "nt")
-    elseif cursor_out_of_bounds
-        let v:char = "move cursor"
-        call cursor(1, 3)
-    endif
+function! s:OpenNifflerBuffer()
+    let origin_buffer = bufname("%")
+    keepalt keepjumps edit __Niffler__
+    let b:niffler_origin_buffer = origin_buffer
 endfunction
 
 
@@ -270,96 +172,178 @@ function! s:SetNifflerOptions()
     silent! setlocal foldcolumn=0
     silent! setlocal colorcolumn=0
     silent! setlocal buflisted noswapfile nospell nofoldenable noreadonly nowrap
-    silent! setlocal nocursorline nocursorcolumn nonumber norelativenumber
+    silent! setlocal nocursorcolumn nonumber norelativenumber
 endfunction
 
 
-function! s:SetNifflerMappings(open_cmd, split_cmd)
-    let ins_del_cmds = ["<BS>", "<Del>", "<C-h>", "<C-w>", "<C-u>"]
-    for cmd in ins_del_cmds
-        execute printf("inoremap <buffer> %s %s<C-o>:call <SID>RedrawPrompt()<CR>", cmd, cmd)
-    endfor
-
-    let open = a:open_cmd
-    let tab = "tab ".a:split_cmd
-    let vert = "vertical ".a:split_cmd
-    let split = a:split_cmd
-
-    inoremap <buffer> <C-J> <Esc>:call <SID>NifflerNextLine(1)<CR>
-    inoremap <buffer> <C-K> <Esc>:call <SID>NifflerNextLine(-1)<CR>
-    inoremap <buffer> <C-G> <Esc>:call <SID>QuitNiffler()<CR>
-    execute printf("inoremap <buffer> <C-M> <Esc>:call <SID>OpenSelection('%s')<CR>", open)
-    execute printf("inoremap <buffer> <CR> <Esc>:call <SID>OpenSelection('%s')<CR>", open)
-    execute printf("inoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection('%s')<CR>", tab)
-    execute printf("inoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection('%s')<CR>", vert)
-    execute printf("inoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection('%s')<CR>", split)
-
-    nnoremap <buffer> <C-J> <Esc>:call <SID>NifflerNextLine(1)<CR>
-    nnoremap <buffer> <C-K> <Esc>:call <SID>NifflerNextLine(-1)<CR>
-    nnoremap <buffer> q :<C-u>call <SID>QuitNiffler()<CR>
-    execute printf("nnoremap <buffer> o :<C-u>call <SID>OpenSelection('%s')<CR>", open)
-    execute printf("nnoremap <buffer> O :<C-u>call <SID>OpenSelection('%s')<CR>", open)
-    execute printf("nnoremap <buffer> <CR> :<C-u>call <SID>OpenSelection('%s')<CR>", open)
-    execute printf("nnoremap <buffer> <C-T> <Esc>:call <SID>OpenSelection('%s')<CR>", tab)
-    execute printf("nnoremap <buffer> <C-V> <Esc>:call <SID>OpenSelection('%s')<CR>", vert)
-    execute printf("nnoremap <buffer> <C-S> <Esc>:call <SID>OpenSelection('%s')<CR>", split)
+function! s:KeypressEventLoop()
+    call cursor(line("$"), 1)
+    let prompt = ""
+    redraw
+    echon s:prompt
+    while exists("b:niffler_isactive")
+        let nr = getchar()
+        let char = !type(nr) ? nr2char(nr) : nr
+        if (char =~# '\p') && (type(nr) == 0)
+            let prompt = s:UpdatePrompt(prompt, char)
+        else
+            let mock_fun = "strtrans"
+            let prompt = call(get(s:function_map, char, mock_fun), [prompt])
+        endif
+    endwhile
 endfunction
 
 
-function! s:HighlightFirstSelection()
-    call s:HighlightSelectionLine()
-    let s:match_id = matchadd("nifflerSelectionLine", '\%2l.*')
+function! s:UpdatePrompt(prompt, char)
+    let prompt = a:prompt . a:char
+    let query = s:ParseQuery(prompt)
+    call s:FilterCandidateList(query)
+    redraw
+    echon s:prompt prompt
+    return prompt
 endfunction
 
 
-function! s:HighlightSelectionLine()
-    let color = (&background ==? "light") ? "cyan" : "darkcyan"
-    execute "highlight nifflerSelectionLine ctermbg=".color." guibg=".color
+function! s:Backspace(prompt)
+    let prompt = a:prompt[0:-2]
+    let query = s:ParseQuery(prompt)
+    let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
+    call s:FilterCandidateList(query)
+    redraw
+    echon s:prompt prompt
+    return prompt
 endfunction
 
 
-function! s:NifflerNextLine(direction)
-    let [bufnum, lnum, cnum, offset] = getpos(".")
-    if line(".") == (2 - a:direction)
-        let lnum = 2
-    endif
-    call setpos(".", [bufnum, lnum + a:direction, cnum, offset])
+function! s:BackwardKillWord(prompt)
+    let prompt = matchstr(a:prompt, '.*\s\ze\S\+$')
+    let query = s:ParseQuery(prompt)
+    let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
+    call s:FilterCandidateList(query)
+    redraw
+    echon s:prompt prompt
+    return prompt
 endfunction
 
 
-function! s:OpenSelection(cmd)
-    let is_prompt_line = (line(".") == 1)
-    if is_prompt_line
-        call cursor(2, 1)
-    endif
+function! s:BackwardKillLine(prompt)
+    let empty_prompt = ""
+    let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
+    call s:FilterCandidateList(empty_prompt)
+    redraw
+    echon s:prompt
+    return empty_prompt
+endfunction
 
-    let old_wd = b:niffler_save_wd
-    let command = s:GetCommand()
-    let file = getline(".")
-    let file = substitute(file, '\v\_^\s*', '', '')
-    let file = substitute(file, '\v\s*$', '', '')
+
+function! s:MoveNextLine(prompt)
+    call cursor(line(".") + 1, col("."))
+    set cursorline!
+    set cursorline!
+    redraw
+    echon s:prompt a:prompt
+    return a:prompt
+endfunction
+
+
+function! s:MovePrevLine(prompt)
+    call cursor(line(".") - 1, col("."))
+    set cursorline!
+    set cursorline!
+    redraw
+    echon s:prompt a:prompt
+    return a:prompt
+endfunction
+
+
+function! s:OpenCurrentWindow(prompt)
+    call s:OpenSelection(a:prompt, b:niffler_open_cmd)
+    return ""
+endfunction
+
+
+function! s:OpenSplitWindow(prompt)
+    call s:OpenSelection(a:prompt, b:niffler_split_cmd)
+    return ""
+endfunction
+
+
+function! s:OpenVertSplit(prompt)
+    let vert_cmd = "vertical " . b:niffler_split_cmd
+    call s:OpenSelection(a:prompt, vert_cmd)
+    return ""
+endfunction
+
+
+function! s:OpenTabWindow(prompt)
+    let tab_cmd = "tab " . b:niffler_split_cmd
+    call s:OpenSelection(a:prompt, tab_cmd)
+    return ""
+endfunction
+
+
+function! s:OpenSelection(prompt, open_cmd)
+    let prompt = s:ParseQuery(a:prompt)
+    let command = s:ParseCommand(a:prompt)
+    let selection = getline(".")
+    let save_wd = b:niffler_save_wd
+
     if b:niffler_new_file
         let new_file = input("New file name: ")
-        let file = l:file."/".new_file
+        let file = file."/".new_file
         if new_file =~ "/"
             call mkdir(matchstr(getcwd()."/".file, '.*\ze\/'), "p")
         endif
         call system("touch ".file)
     endif
-    call s:QuitNiffler()
-    execute a:cmd." ".file
-    execute "lchdir! ".old_wd
-    execute "normal! ".command."G"
+    call s:QuitNiffler(prompt)
+    execute a:open_cmd selection
+    execute command
+    execute "lchdir " . save_wd
 endfunction
 
 
-function! s:QuitNiffler()
-    execute "keepalt keepjumps buffer ".b:niffler_save_alt_buffer
+function! s:QuitNiffler(prompt)
+    unlet b:niffler_isactive
+    execute "keepalt keepjumps buffer ".b:niffler_origin_buffer
 endfunction
 
 
-function! s:OnBufLeave()
-    silent! call matchdelete(s:match_id)
+" ======================================================================
+" Handler Functions
+" ======================================================================
+
+function! s:FilterCandidateList(query)
+    if empty(b:niffler_candidate_string)
+        return
+    endif
+    let query = empty(a:query) ? g:niffler_fuzzy_char : a:query
+    let special_chars = substitute('.*[]\', '\V'.g:niffler_fuzzy_char, '', '')
+    let filter_regex = escape(query, special_chars)
+    let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
+    let search_patterns = split(filter_regex)
+    let map_expr = '"grep -m '.b:niffler_candidate_limit.'".((v:val =~# "\\u") ? "" : " -i")." -e \"".v:val."\""'
+    let grep_filter = join(map(search_patterns, map_expr), " | ")
+    let candidates = system(grep_filter, b:niffler_candidate_string)
+    let candidate_list = split(candidates, "\n")
+    if len(candidate_list) < b:niffler_candidate_limit
+        let b:niffler_candidate_string = candidates
+    endif
+    silent! 1,$ delete _
+    call append(0, candidate_list[0:b:niffler_candidate_limit-1])
+    $ delete _
+endfunction
+
+
+function! s:ParseQuery(prompt)
+    let query = get(split(a:prompt, ":"), 0, "")
+    return query
+endfunction
+
+
+function! s:ParseCommand(prompt)
+    let command = get(split(a:prompt, ":"), 1, "")
+    return command
 endfunction
 
 
