@@ -280,6 +280,7 @@ function! s:OpenSelection(prompt, open_cmd)
     let prompt = s:ParseQuery(a:prompt)
     let command = s:ParseCommand(a:prompt)
     let selection = getline(".")
+    let niffler_wd = getcwd()
     let save_wd = b:niffler_save_wd
 
     if b:niffler_new_file
@@ -291,9 +292,10 @@ function! s:OpenSelection(prompt, open_cmd)
         call system("touch ".file)
     endif
     call s:QuitNiffler(prompt)
+    execute "lchdir! " . niffler_wd
     execute a:open_cmd selection
     execute command
-    execute "lchdir " . save_wd
+    execute "lchdir! " . save_wd
 endfunction
 
 
