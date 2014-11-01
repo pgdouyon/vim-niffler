@@ -285,11 +285,11 @@ function! s:OpenSelection(prompt, open_cmd)
 
     if b:niffler_new_file
         let new_file = input("New file name: ")
-        let file = file."/".new_file
+        let selection = selection."/".new_file
         if new_file =~ "/"
-            call mkdir(matchstr(getcwd()."/".file, '.*\ze\/'), "p")
+            call mkdir(matchstr(getcwd()."/".selection, '.*\ze\/'), "p")
         endif
-        call system("touch ".file)
+        call system("touch ".selection)
     endif
     call s:QuitNiffler(prompt)
     execute "lchdir! " . niffler_wd
