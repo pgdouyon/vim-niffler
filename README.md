@@ -81,9 +81,9 @@ The size of the MRU cache (default 500) can be configured with the variable
 Requirements
 ------------
 
-Niffler currently requires both the `find` and `grep` utilities and MacOSX or
-any \*nix OS for full support.  Niffler is not fully supported on Windows, only
-the NifflerMRU and NifflerBuffer commands are available.
+Niffler currently requires both the `find`, `grep`, and `touch` utilities for
+full support.  Niffler is not tested on Windows and its current level of
+support is unknown.
 
 
 Installation

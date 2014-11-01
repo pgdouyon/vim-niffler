@@ -55,7 +55,7 @@ function! s:Niffler(args)
     let all = (opts =~# "-all")
 
     let save_wd = getcwd()
-    call s:ChangeWorkingDirectory((!empty(dir) ? dir : "~"), vcs)
+    call s:ChangeWorkingDirectory((!empty(dir) ? dir : expand("$HOME")), vcs)
 
     let file_list = s:FindFiles(all, new)
     call s:NifflerSetup(file_list)
