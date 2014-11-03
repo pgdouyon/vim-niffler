@@ -10,38 +10,37 @@ Vim-Niffler, on the other hand, is a fast, lightweight, fuzzy, file finder for
 Vim and is heavily inspired by [FZF][].
 
 I made Vim-Niffler because all the other fuzzy file finders I tried were either
-really slow (Unite) or didn't support opening the fuzzy finder in the current
-buffer window (FZF only opens the fuzzy finder in a split).  FZF is much faster
-and more feature complete so I highly recommend trying it if split windows
-aren't a problem.
+too slow for me (Unite) or didn't support opening the fuzzy finder in the
+current buffer window (FZF only opens the fuzzy finder in a split).  FZF is
+much faster and more feature complete so I highly recommend trying it if split
+windows aren't a problem.
 
 
 Usage
 -----
 
-Niffler differs from other fuzzy file finders in that it doesn't perform a fuzzy
-search by default.  Instead it searches for an exact match of the text typed but
-you can insert a "fuzzy character" to indicate exactly which part of the query
-should use fuzzy matching.  This is probably best explained by an example, the
-fuzzy char in this case will be a "\*":
+Niffler differs from other fuzzy file finders in that it doesn't perform a
+fuzzy search by default.  Instead it searches for an exact match of the text
+typed but you can insert a "fuzzy character" to specify which part of the query
+should match any string of characters.  This works exactly like the "\*"
+wildcard character in most shells:
 
-* `oba` will match `foobar` but not `foobuzzbar`
-* `ob*a` will match `foobar` and `foobuzzbar`
-* `f*ob*ar` will match `foobar`, `foobuzzbar`, and `fizzboobar`, but not `foobaz`
+* `izzbu` will match `fizzbuzz` but not `fizzbazbuzz`
+* `izz*bu` will match `fizzbuzz` and `fizzbazbuzz`
 
 The default fuzzy char is `*` but can be changed with `g:niffler_fuzzy_char`
 
 The beginning and end of the query are fuzzy by default but you can use `^` and
 `$` to specify an exact match at either end:
 
-* `^foo` will match `foobar` but not `buzzfoobar`
-* `foo$` will match `buzzfoo` but not `buzzfoobar`
+* `^fizz` will match `fizzbazbuzz` but not `buzzfizzbaz`
+* `buzz$` will match `fizzbazbuzz` but not `bazbuzzfizz`
 
 Specify a command to be run on the open file by appending a ":<CMD>" to the end
 of the search query.
 
-* `ob*a:45` will open a file `foobar` and jump to line 45
-* `ob*a:diffthis` will open a file `foobar` and add the file to the diff windows
+* `iz*buz:45` will open a file `fizzbazbuzz` and jump to line 45
+* `iz*buz:diffthis` will open a file `fizzbazbuzz` and add the file to the diff windows
 
 Niffler has several different modes:
 
@@ -81,9 +80,9 @@ The size of the MRU cache (default 500) can be configured with the variable
 Requirements
 ------------
 
-Niffler currently requires both the `find`, `grep`, and `touch` utilities for
-full support.  Niffler is not tested on Windows and its current level of
-support is unknown.
+Niffler currently requires the `find`, `grep`, and `touch` utilities for full
+support.  Niffler is not tested on Windows and its current level of support is
+unknown.
 
 
 Installation
