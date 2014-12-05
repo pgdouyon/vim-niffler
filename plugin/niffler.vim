@@ -310,6 +310,22 @@ function! s:QuitNiffler(prompt)
 endfunction
 
 
+function! s:PasteFromRegister(prompt)
+    let register = getchar()
+    if !type(register)
+        let paste_text = getreg(nr2char(register))
+        let prompt = a:prompt . paste_text
+        let query = s:ParseQuery(prompt)
+        call s:FilterCandidateList(query)
+        redraw
+        echon s:prompt prompt
+        return prompt
+    else
+        return a:prompt
+    endif
+endfunction
+
+
 let s:function_map = {
     \"\<BS>"  : function("<SID>Backspace"),
     \"\<C-H>" : function("<SID>Backspace"),
@@ -322,7 +338,8 @@ let s:function_map = {
     \"\<C-V>" : function("<SID>OpenVertSplit"),
     \"\<C-T>" : function("<SID>OpenTabWindow"),
     \"\<Esc>" : function("<SID>QuitNiffler"),
-    \"\<C-G>" : function("<SID>QuitNiffler")
+    \"\<C-G>" : function("<SID>QuitNiffler"),
+    \"\<C-R>" : function("<SID>PasteFromRegister")
     \}
 
 
