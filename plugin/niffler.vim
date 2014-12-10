@@ -39,6 +39,10 @@ if !exists("g:niffler_fuzzy_char")
     let g:niffler_fuzzy_char = "*"
 endif
 
+if !exists("g:niffler_ignore_extensions")
+    let g:niffler_ignore_extensions = []
+endif
+
 
 " ======================================================================
 " Plugin Code
@@ -120,8 +124,18 @@ function! s:FindFiles(unrestricted, new_file)
 
     let find_cmd = "find * " . find_args . "2>/dev/null"
     let find_result = system(find_cmd)
-    let files = split(find_result, "\n")
-    return files
+    let filtered_files = s:FilterIgnoreFiles(find_result)
+    let candidate_list = split(filtered_files, "\n")
+    return candidate_list
+endfunction
+
+
+function! s:FilterIgnoreFiles(candidates)
+    let escape_period = 'substitute(v:val, "\\.", "\\\\.", "g")'
+    let ignore_files = join(map(copy(g:niffler_ignore_extensions), escape_period), '\|')
+    let filter_ignore_files = 'grep -v -e "\('.ignore_files.'\)$"'
+    let filtered_candidates = system(filter_ignore_files, a:candidates)
+    return filtered_candidates
 endfunction
 
 
