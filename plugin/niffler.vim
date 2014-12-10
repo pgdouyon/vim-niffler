@@ -61,8 +61,8 @@ function! s:Niffler(args)
     let save_wd = getcwd()
     call s:ChangeWorkingDirectory((!empty(dir) ? dir : expand("$HOME")), vcs)
 
-    let file_list = s:FindFiles(all, new)
-    call s:NifflerSetup(file_list)
+    let candidate_list = s:FindFiles(all, new)
+    call s:NifflerSetup(candidate_list)
 
     let b:niffler_save_wd = save_wd
     let b:niffler_new_file = new
@@ -139,18 +139,18 @@ function! s:FilterIgnoreFiles(candidates)
 endfunction
 
 
-function! s:NifflerSetup(candidates)
+function! s:NifflerSetup(candidate_list)
     if !executable("grep")
         throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
         return
     endif
     call s:OpenNifflerBuffer()
     call s:SetNifflerOptions()
-    call append(0, a:candidates[0:winheight(0)-1])
+    call append(0, a:candidate_list[0:winheight(0)-1])
     $ delete _
 
-    let b:niffler_candidate_list = a:candidates
-    let b:niffler_candidate_string = join(a:candidates, "\n")
+    let b:niffler_candidate_list = a:candidate_list
+    let b:niffler_candidate_string = join(a:candidate_list, "\n")
     let b:niffler_candidate_limit = winheight(0)
     let b:niffler_new_file = 0
     let b:niffler_isactive = 1
@@ -365,20 +365,38 @@ function! s:FilterCandidateList(query)
     if empty(b:niffler_candidate_string)
         return
     endif
-    let query = empty(a:query) ? g:niffler_fuzzy_char : a:query
-    let special_chars = substitute('.*[]\', '\V'.g:niffler_fuzzy_char, '', '')
-    let filter_regex = escape(query, special_chars)
-    let filter_regex = substitute(filter_regex, '\V'.g:niffler_fuzzy_char, '.*', 'g')
-    let search_patterns = split(filter_regex)
-    let map_expr = '"grep -m '.b:niffler_candidate_limit.'".((v:val =~# "\\u") ? "" : " -i")." -e \"".v:val."\""'
-    let grep_filter = join(map(search_patterns, map_expr), " | ")
-    let candidates = system(grep_filter, b:niffler_candidate_string)
+    let sanitized_query = s:SanitizeQuery(a:query)
+    let grep_cmd = s:TranslateQueryToGrepCmd(sanitized_query)
+    let candidates = system(grep_cmd, b:niffler_candidate_string)
     let candidate_list = split(candidates, "\n")
     if len(candidate_list) < b:niffler_candidate_limit
         let b:niffler_candidate_string = candidates
     endif
+    call s:Display(candidate_list)
+endfunction
+
+
+function! s:SanitizeQuery(query)
+    let query = empty(a:query) ? g:niffler_fuzzy_char : a:query
+    let special_chars = substitute('.*[]\', '\V'.g:niffler_fuzzy_char, '', '')
+    let sanitized_query = escape(query, special_chars)
+    let sanitized_query = substitute(sanitized_query, '\V'.g:niffler_fuzzy_char, '.*', 'g')
+    return sanitized_query
+endfunction
+
+
+function! s:TranslateQueryToGrepCmd(query)
+    let grep_cmd = "grep -m ".b:niffler_candidate_limit
+    let search_terms = split(a:query)
+    let translator = '"'.grep_cmd.'".((v:val =~# "\\u") ? "" : " -i")." -e \"".v:val."\""'
+    let grep_filter_cmd = join(map(search_terms, translator), " | ")
+    return grep_filter_cmd
+endfunction
+
+
+function! s:Display(candidate_list)
     silent! 1,$ delete _
-    call append(0, candidate_list[0:b:niffler_candidate_limit-1])
+    call append(0, a:candidate_list[0:b:niffler_candidate_limit-1])
     $ delete _
 endfunction
 
