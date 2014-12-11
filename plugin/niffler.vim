@@ -43,6 +43,10 @@ if !exists("g:niffler_ignore_extensions")
     let g:niffler_ignore_extensions = []
 endif
 
+if !exists("g:niffler_ignore_dirs")
+    let g:niffler_ignore_dirs = []
+endif
+
 
 " ======================================================================
 " Plugin Code
@@ -110,10 +114,11 @@ endfunction
 
 
 function! s:FindFiles(unrestricted, new_file)
+    let find_args = s:GetDefaultFindArgs()
     if a:unrestricted
-        let find_args = "-path '*/\.git*' -prune -o "
+        let find_args .= "\( -path '*/\.git*' -o -path '*/\.svn*' -o -path '*/\.hg*' \) -prune -o "
     else
-        let find_args = "-path '*/\.*' -prune -o "
+        let find_args .= "-path '*/\.*' -prune -o "
     endif
 
     if a:new_file
@@ -127,6 +132,14 @@ function! s:FindFiles(unrestricted, new_file)
     let filtered_files = s:FilterIgnoreFiles(find_result)
     let candidate_list = split(filtered_files, "\n")
     return candidate_list
+endfunction
+
+
+function! s:GetDefaultFindArgs()
+    let generate_path_expr = '"-path \"*".substitute(v:val, "[^/]$", "\\0/", "")."*\""'
+    let ignore_dirs = join(map(copy(g:niffler_ignore_dirs), generate_path_expr), " -o ")
+    let default_args = '\( '.ignore_dirs.' \) -prune -o '
+    return default_args
 endfunction
 
 
