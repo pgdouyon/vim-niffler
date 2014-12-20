@@ -430,12 +430,14 @@ endfunction
 " ======================================================================
 
 function! s:UpdateMruList(fname)
-    let scratch = (&l:buftype ==# "nofile")
-    let quickfix = (&l:buftype ==# "quickfix")
-    let helpfile = (&l:buftype ==# "help")
+    let scratch = (&l:buftype ==# 'nofile')
+    let quickfix = (&l:buftype ==# 'quickfix')
+    let helpfile = (&l:buftype ==# 'help')
+    let gitcommit = (&l:filetype ==# 'gitcommit')
     let unlisted = (&l:buflisted == 0)
-    let gitcommit = (&l:filetype ==# "gitcommit")
-    if !scratch && !quickfix && !helpfile && !unlisted && !gitcommit
+    let temp = (a:fname =~# '/te\?mp/')
+    let vcs_file = (a:fname =~# '\.\%(git\|svn\|hg\)/')
+    if !(scratch || quickfix || helpfile || gitcommit || unlisted || temp || vcs_file)
         call add(s:mru_list, a:fname)
     endif
 endfunction
