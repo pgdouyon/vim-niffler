@@ -79,8 +79,7 @@ endfunction
 
 function! s:NifflerMRU()
     call s:PruneMruList()
-    let mru_list =  reverse(copy(s:mru_list))
-    call s:NifflerSetup(mru_list)
+    call s:NifflerSetup(copy(s:mru_list))
     let b:niffler_save_wd = getcwd()
     let b:niffler_new_file = 0
     let b:niffler_open_cmd = "edit"
