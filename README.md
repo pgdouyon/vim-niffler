@@ -59,7 +59,7 @@ The `Niffler` command takes any number of optional arguments and has the followi
 * -all: search all files/directories, including hidden and any ignored files
 * Directory to search from
 
-The size of the MRU cache (default 500) can be configured with the variable
+The size of the MRU cache (default 30) can be configured with the variable
 `g:niffler_mru_max_history`.
 
 
