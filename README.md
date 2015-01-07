@@ -69,12 +69,21 @@ The size of the MRU cache (default 30) can be configured with the variable
 | ------------------------- | ---------------------------------------- |
 | `<C-K>`                   | Move up one line in the candidate list   |
 | `<C-J>`                   | Move down one line in the candidate list |
+| `<C-R>`                   | Insert the contents of a register        |
 | `<CR>`                    | Open selection in current window         |
 | `<C-S>`                   | Open selection in new horizontal split   |
 | `<C-V>`                   | Open selection in new vertical split     |
 | `<C-T>`                   | Open selection in new tab window         |
 | `<Esc>`, `<C-[>`, `<C-C>` | Quit Niffler                             |
 
+
+### Configuration
+
+- `g:niffler_ignore_extensions`
+    - List of file extensions to exclude from Niffler results
+- `g:niffler_ignore_dirs`
+    - List of directories to exclude from Niffler results
+    - Helpful for large directories that could slow Niffler down
 
 
 Requirements
