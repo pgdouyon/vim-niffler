@@ -191,8 +191,9 @@ function! s:SetNifflerOptions()
 
     let b:niffler_guibg = matchstr(cursorline, 'guibg=\zs\S\+')
     let b:niffler_ctermbg = matchstr(cursorline, 'ctermbg=\zs\S\+')
-    let color = (&background ==? "light") ? "cyan" : "darkcyan"
-    execute printf("highlight CursorLine ctermbg=%s guibg=%s", color, color)
+    let gui_color = (&background ==? "light") ? "#de00ff" : "#5f00ff"
+    let cterm_color = (&background ==? "light") ? "177" : "57"
+    execute printf("highlight CursorLine ctermbg=%s guibg=%s", cterm_color, gui_color)
 endfunction
 
 
