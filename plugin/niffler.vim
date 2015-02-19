@@ -102,6 +102,46 @@ function! s:niffler_buffer()
 endfunction
 
 
+function! s:niffler_tags(use_current_buffer)
+    if a:use_current_buffer
+        let taglist = s:taglist_current_buffer()
+    else
+        let taglist = s:taglist()
+    endif
+    call s:niffler_setup(taglist)
+    let b:niffler_save_wd = getcwd()
+    let b:niffler_new_file = 0
+    let b:niffler_open_cmd = (a:use_current_buffer ? "silent tag" : "tjump")
+    let b:niffler_split_cmd = (a:use_current_buffer ? "silent stag" : "stjump")
+
+    call s:keypress_event_loop()
+endfunction
+
+
+function! s:taglist()
+    let taglist = []
+    let tagfiles = tagfiles()
+    for tagfile in tagfiles
+        let tags_cmd = 'grep -v ^!_TAG_ %s | cut -f1 | sort -u'
+        let tags = split(system(printf(tags_cmd, tagfile)), "\n")
+        call extend(taglist, tags)
+    endfor
+    return taglist
+endfunction
+
+
+function! s:taglist_current_buffer()
+    if executable("ctags")
+        let current_buffer = expand("%:p")
+        let taglist_cmd = 'ctags -f - %s | cut -f1 | sort -u'
+        let taglist = split(system(printf(taglist_cmd, current_buffer)), "\n")
+    else
+        throw "[Niffler] - Error: ctags executable not found. ctags is required to run :NifflerTags %"
+    endif
+    return taglist
+endfunction
+
+
 function! s:change_working_directory(default_dir, vcs_root)
     let dir = a:default_dir
     if a:vcs_root
@@ -477,6 +517,7 @@ endfunction
 command! -nargs=* -complete=dir Niffler call <SID>niffler(<q-args>)
 command! -nargs=0 NifflerMRU call <SID>niffler_mru()
 command! -nargs=0 NifflerBuffer call <SID>niffler_buffer()
+command! -nargs=? NifflerTags call <SID>niffler_tags(<q-args> ==# "%")
 
 
 " ======================================================================

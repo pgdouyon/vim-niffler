@@ -49,6 +49,7 @@ Niffler has several different modes:
 | `Niffler`       | Fuzzy file search                                                     |
 | `NifflerMRU`    | Fuzzy file search on MRU cache                                        |
 | `NifflerBuffer` | Fuzzy file search on buffer list                                      |
+| `NifflerTags`   | Fuzzy file search on ctags list                                       |
 
 The `Niffler` command takes any number of optional arguments and has the following structure:
 
@@ -58,6 +59,9 @@ The `Niffler` command takes any number of optional arguments and has the followi
 * -new: search for directory and enter new file name
 * -all: search all files/directories, including hidden and any ignored files
 * Directory to search from
+
+The `NifflerTags` command can optionally take a % as argument to only search
+for tags in the current file.
 
 The size of the MRU cache (default 30) can be configured with the variable
 `g:niffler_mru_max_history`.
