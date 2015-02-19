@@ -71,8 +71,8 @@ The size of the MRU cache (default 30) can be configured with the variable
 
 | Key                       | Action                                   |
 | ------------------------- | ---------------------------------------- |
-| `<C-K>`                   | Move up one line in the candidate list   |
-| `<C-J>`                   | Move down one line in the candidate list |
+| `<C-K>`, `<C-P>`          | Move up one line in the candidate list   |
+| `<C-J>`, `<C-N>`          | Move down one line in the candidate list |
 | `<C-R>`                   | Insert the contents of a register        |
 | `<CR>`                    | Open selection in current window         |
 | `<C-S>`                   | Open selection in new horizontal split   |
