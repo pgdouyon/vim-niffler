@@ -44,12 +44,13 @@ of the search query.
 
 Niffler has several different modes:
 
-| Command         | Description                                                           |
-| --------------- | --------------------------------------------------------------------- |
-| `Niffler`       | Fuzzy file search                                                     |
-| `NifflerMRU`    | Fuzzy file search on MRU cache                                        |
-| `NifflerBuffer` | Fuzzy file search on buffer list                                      |
-| `NifflerTags`   | Fuzzy file search on ctags list                                       |
+| Command           | Description                                                         |
+| ----------------- | ------------------------------------------------------------------- |
+| `Niffler`         | Fuzzy file search                                                   |
+| `NifflerMRU`      | Fuzzy file search on MRU cache                                      |
+| `NifflerBuffer`   | Fuzzy file search on buffer list                                    |
+| `NifflerTags`     | Fuzzy file search on ctags list                                     |
+| `NifflerGlobal`   | Fuzzy file search on GNU global file list                           |
 
 The `Niffler` command takes any number of optional arguments and has the following structure:
 

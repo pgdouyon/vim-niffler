@@ -142,6 +142,37 @@ function! s:taglist_current_buffer()
 endfunction
 
 
+function! s:niffler_global(args)
+    if !executable("global")
+        echoerr "Niffler: `global` command not found. Unable to build list of files."
+        return
+    endif
+    let dir = matchstr(a:args, '\%(-\S\+\s*\)*\zs.*$')
+    let opts = matchstr(a:args, '\%(-\S\+\s*\)\+')
+    let new = (opts =~# "-new")
+
+    let save_wd = getcwd()
+    let global_root = s:get_global_root()
+    call s:change_working_directory((!empty(dir) ? dir : global_root), 0)
+
+    let candidate_list = split(system("global -P '.*'"), "\n")
+    call s:niffler_setup(candidate_list)
+
+    let b:niffler_new_file = new
+    let b:niffler_open_cmd = "edit"
+    let b:niffler_split_cmd = "split"
+
+    call s:keypress_event_loop()
+endfunction
+
+
+function! s:get_global_root()
+    lchdir! %:h
+    let global_root = system("global -p")
+    lchdir! -
+endfunction
+
+
 function! s:change_working_directory(default_dir, vcs_root)
     let dir = a:default_dir
     if a:vcs_root
@@ -517,6 +548,7 @@ endfunction
 " ======================================================================
 
 command! -nargs=* -complete=dir Niffler call <SID>niffler(<q-args>)
+command! -nargs=* -complete=dir NifflerGlobal call <SID>niffler_global(<q-args>)
 command! -nargs=0 NifflerMRU call <SID>niffler_mru()
 command! -nargs=0 NifflerBuffer call <SID>niffler_buffer()
 command! -nargs=? NifflerTags call <SID>niffler_tags(<q-args> ==# "%")
