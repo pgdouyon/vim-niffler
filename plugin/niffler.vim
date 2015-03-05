@@ -216,7 +216,7 @@ endfunction
 
 
 function! s:filter_ignore_files(candidates)
-    let escape_period = 'substitute(v:val, "\\.", "\\\\.", "g")'
+    let escape_period = 'escape(v:val, ".")'
     let ignore_files = join(map(copy(g:niffler_ignore_extensions), escape_period), '\|')
     let filter_ignore_files = 'grep -v -e "\('.ignore_files.'\)$"'
     let filtered_candidates = system(filter_ignore_files, a:candidates)
