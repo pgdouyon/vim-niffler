@@ -158,6 +158,7 @@ function! s:niffler_global(args)
     let candidate_list = split(system("global -P '.*'"), "\n")
     call s:niffler_setup(candidate_list)
 
+    let b:niffler_save_wd = save_wd
     let b:niffler_new_file = new
     let b:niffler_open_cmd = "edit"
     let b:niffler_split_cmd = "split"
@@ -170,6 +171,7 @@ function! s:get_global_root()
     lchdir! %:h
     let global_root = system("global -p")
     lchdir! -
+    return global_root
 endfunction
 
 
