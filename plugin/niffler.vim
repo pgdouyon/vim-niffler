@@ -65,8 +65,8 @@ function! s:niffler(args)
     let save_wd = getcwd()
     call s:change_working_directory((!empty(dir) ? dir : expand("$HOME")), vcs)
 
-    let candidate_list = s:find_files(all, new)
-    call s:niffler_setup(candidate_list)
+    let candidate_string = s:find_files(all, new)
+    call s:niffler_setup(candidate_string)
 
     let b:niffler_save_wd = save_wd
     let b:niffler_new_file = new
@@ -79,7 +79,7 @@ endfunction
 
 function! s:niffler_mru()
     call s:prune_mru_list()
-    call s:niffler_setup(copy(s:mru_list))
+    call s:niffler_setup(join(s:mru_list, "\n"))
     let b:niffler_save_wd = getcwd()
     let b:niffler_new_file = 0
     let b:niffler_open_cmd = "edit"
@@ -92,7 +92,8 @@ endfunction
 function! s:niffler_buffer()
     redir => buffers | silent ls | redir END
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
-    call s:niffler_setup(buflist)
+    let buflist_string = join(buflist, "\n")
+    call s:niffler_setup(buflist_string)
     let b:niffler_save_wd = getcwd()
     let b:niffler_new_file = 0
     let b:niffler_open_cmd = "buffer"
@@ -119,12 +120,12 @@ endfunction
 
 
 function! s:taglist()
-    let taglist = []
+    let taglist = ""
     let tagfiles = tagfiles()
     for tagfile in tagfiles
         let tags_cmd = 'grep -v ^!_TAG_ %s | cut -f1 | sort -u'
-        let tags = split(system(printf(tags_cmd, tagfile)), "\n")
-        call extend(taglist, tags)
+        let tags = system(printf(tags_cmd, tagfile))
+        let taglist .= tags
     endfor
     return taglist
 endfunction
@@ -134,9 +135,9 @@ function! s:taglist_current_buffer()
     if executable("ctags")
         let current_buffer = expand("%:p")
         let taglist_cmd = 'ctags -f - %s | cut -f1 | sort -u'
-        let taglist = split(system(printf(taglist_cmd, current_buffer)), "\n")
+        let taglist = system(printf(taglist_cmd, current_buffer))
     else
-        throw "[Niffler] - Error: ctags executable not found. ctags is required to run :NifflerTags %"
+        throw "[Niffler] - Error: ctags executable not found.\nctags is required to run :NifflerTags %"
     endif
     return taglist
 endfunction
@@ -155,8 +156,8 @@ function! s:niffler_global(args)
     let global_root = s:get_global_root()
     call s:change_working_directory((!empty(dir) ? dir : global_root), 0)
 
-    let candidate_list = split(system("global -P '.*'"), "\n")
-    call s:niffler_setup(candidate_list)
+    let candidate_string = system("global -P '.*'")
+    call s:niffler_setup(candidate_string)
 
     let b:niffler_save_wd = save_wd
     let b:niffler_new_file = new
@@ -202,8 +203,7 @@ function! s:find_files(unrestricted, new_file)
     let find_cmd = "find * " . find_args . "2>/dev/null"
     let find_result = system(find_cmd)
     let filtered_files = s:filter_ignore_files(find_result)
-    let candidate_list = split(filtered_files, "\n")
-    return candidate_list
+    return filtered_files
 endfunction
 
 
@@ -224,18 +224,19 @@ function! s:filter_ignore_files(candidates)
 endfunction
 
 
-function! s:niffler_setup(candidate_list)
+function! s:niffler_setup(candidate_string)
     if !executable("grep")
         throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
         return
     endif
+    let candidate_list = split(a:candidate_string, "\n")
     call s:open_niffler_buffer()
     call s:set_niffler_options()
-    call append(0, a:candidate_list[0:winheight(0)-1])
+    call append(0, candidate_list[0:winheight(0)-1])
     $ delete _
 
-    let b:niffler_candidate_list = a:candidate_list
-    let b:niffler_candidate_string = join(a:candidate_list, "\n")
+    let b:niffler_candidate_list = candidate_list
+    let b:niffler_candidate_string = a:candidate_string
     let b:niffler_candidate_limit = winheight(0)
     let b:niffler_new_file = 0
     let b:niffler_isactive = 1
