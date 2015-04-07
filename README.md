@@ -10,10 +10,14 @@ Vim-Niffler, on the other hand, is a fast, lightweight, fuzzy, file finder for
 Vim and is heavily inspired by [FZF][].
 
 I made Vim-Niffler because all the other fuzzy file finders I tried were either
-too slow for me (Unite) or didn't support opening the fuzzy finder in the
-current buffer window (FZF only opens the fuzzy finder in a split).  FZF is
-much faster and more feature complete so I highly recommend trying it if split
-windows aren't a problem.
+too slow without caching (Unite, CtrlP), too complicated (Unite), had a hideous
+codebase (CtrlP), or didn't support opening the fuzzy finder in the current
+window (FZF).
+
+If I had known about `g:ctrlp_user_command="ag %s"` and `g:ctrlp_use_caching=0`
+I probably would have never made Niffler, but now that I have it's nice to have
+a small, legible codebase that makes adding new features/changing core
+functionality a breeze.
 
 
 Usage
@@ -98,6 +102,13 @@ Niffler currently requires the `find`, `grep`, and `touch` utilities for full
 support.  Niffler is not tested on Windows and its current level of support is
 unknown.
 
+**Note**: If you use OS X, I highly recommend aliasing the BSD findutils with
+their GNU counterparts, which I've found can speed up find queries by a factor
+of 2.  This might cause some problems with the `locate` command so use at your
+own discretion but you can install the GNU versions with the command:
+
+`brew install findutils --with-default-names`
+
 
 Installation
 ------------
@@ -118,7 +129,7 @@ Installation
 License
 -------
 
-Copyright (c) 2014 Pierre-Guy Douyon.  Distributed under the MIT License.
+Copyright (c) 2015 Pierre-Guy Douyon.  Distributed under the MIT License.
 
 
 [FZF]: https://github.com/junegunn/fzf
