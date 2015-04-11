@@ -229,17 +229,15 @@ function! s:niffler_setup(candidate_string)
         throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
         return
     endif
-    let candidate_list = split(a:candidate_string, "\n")
     call s:open_niffler_buffer()
     call s:set_niffler_options()
-    call append(0, candidate_list[0:winheight(0)-1])
-    $ delete _
-
+    let candidate_list = split(a:candidate_string, "\n")
     let b:niffler_candidate_list = candidate_list
     let b:niffler_candidate_string = a:candidate_string
     let b:niffler_candidate_limit = winheight(0)
     let b:niffler_new_file = 0
     let b:niffler_isactive = 1
+    call s:display(candidate_list)
 endfunction
 
 
