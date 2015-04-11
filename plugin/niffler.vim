@@ -467,11 +467,13 @@ endfunction
 
 
 function! s:translate_query_to_grep_cmd(query)
-    let grep_cmd = "grep -m ".b:niffler_candidate_limit
+    let grep_cmd = "grep"
+    let grep_cmd_restricted = "grep -m ".b:niffler_candidate_limit
     let search_terms = split(a:query)
     let translator = '"'.grep_cmd.'".((v:val =~# "\\u") ? "" : " -i")." -e \"".v:val."\""'
     let grep_filter_cmd = join(map(search_terms, translator), " | ")
-    return grep_filter_cmd
+    let grep_filter_cmd_restricted = substitute(grep_filter_cmd, 'grep\ze [^|]*$', grep_cmd_restricted, '')
+    return grep_filter_cmd_restricted
 endfunction
 
 
