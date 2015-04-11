@@ -47,6 +47,8 @@ if !exists("g:niffler_ignore_dirs")
     let g:niffler_ignore_dirs = []
 endif
 
+highlight default NifflerCursorLine ctermbg=57 guibg=#5f00ff
+
 
 " ======================================================================
 " Plugin Code
@@ -257,15 +259,8 @@ function! s:set_niffler_options()
     silent! setlocal buflisted noswapfile nospell nofoldenable noreadonly nowrap
     silent! setlocal nocursorcolumn nonumber norelativenumber
 
-    redir => cursorline
-    highlight CursorLine
-    redir END
-
-    let b:niffler_guibg = matchstr(cursorline, 'guibg=\zs\S\+')
-    let b:niffler_ctermbg = matchstr(cursorline, 'ctermbg=\zs\S\+')
-    let gui_color = (&background ==? "light") ? "#de00ff" : "#5f00ff"
-    let cterm_color = (&background ==? "light") ? "177" : "57"
-    execute printf("highlight CursorLine ctermbg=%s guibg=%s", cterm_color, gui_color)
+    let b:niffler_save_matches = getmatches() | call clearmatches()
+    let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
 endfunction
 
 
@@ -401,9 +396,8 @@ endfunction
 function! s:quit_niffler(prompt)
     unlet b:niffler_isactive
     let save_wd = b:niffler_save_wd
-    let ctermbg = b:niffler_ctermbg
-    let guibg = b:niffler_guibg
-    execute printf("highlight CursorLine ctermbg=%s guibg=%s", ctermbg, guibg)
+    call matchdelete(b:niffler_highlight_group)
+    call setmatches(b:niffler_save_matches)
     execute "keepalt keepjumps buffer ".b:niffler_origin_buffer
     execute "lchdir! " . save_wd
 endfunction
@@ -484,6 +478,7 @@ endfunction
 function! s:display(candidate_list)
     silent! 1,$ delete _
     call append(0, a:candidate_list[0:b:niffler_candidate_limit-1])
+    %substitute/$/\=repeat(" ", winwidth(0))/
     $ delete _
 endfunction
 
