@@ -210,19 +210,26 @@ endfunction
 
 
 function! s:get_default_find_args()
-    let generate_path_expr = '"-path \"*".substitute(v:val, "[^/]$", "\\0/", "")."*\""'
-    let ignore_dirs = join(map(copy(g:niffler_ignore_dirs), generate_path_expr), " -o ")
-    let default_args = '\( '.ignore_dirs.' \) -prune -o '
+    let default_args = ""
+    if !empty(g:niffler_ignore_dirs)
+        let generate_path_expr = '"-path \"*".substitute(v:val, "[^/]$", "\\0/", "")."*\""'
+        let ignore_dirs = join(map(copy(g:niffler_ignore_dirs), generate_path_expr), " -o ")
+        let default_args = '\( '.ignore_dirs.' \) -prune -o '
+    endif
     return default_args
 endfunction
 
 
 function! s:filter_ignore_files(candidates)
-    let escape_period = 'escape(v:val, ".")'
-    let ignore_files = join(map(copy(g:niffler_ignore_extensions), escape_period), '\|')
-    let filter_ignore_files = 'grep -v -e "\('.ignore_files.'\)$"'
-    let filtered_candidates = system(filter_ignore_files, a:candidates)
-    return filtered_candidates
+    if empty(g:niffler_ignore_extensions)
+        return a:candidates
+    else
+        let escape_period = 'escape(v:val, ".")'
+        let ignore_files = join(map(copy(g:niffler_ignore_extensions), escape_period), '\|')
+        let filter_ignore_files = 'grep -v -e "\('.ignore_files.'\)$"'
+        let filtered_candidates = system(filter_ignore_files, a:candidates)
+        return filtered_candidates
+    endif
 endfunction
 
 
