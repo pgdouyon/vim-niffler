@@ -380,7 +380,7 @@ endfunction
 function! s:open_selection(prompt, open_cmd)
     let prompt = s:parse_query(a:prompt)
     let command = s:parse_command(a:prompt)
-    let selection = getline(".")
+    let selection = substitute(getline("."), '\s*$', '', '')
     let niffler_wd = getcwd()
     let save_wd = b:niffler_save_wd
 
