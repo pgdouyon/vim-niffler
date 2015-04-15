@@ -486,8 +486,9 @@ endfunction
 
 function! s:display(candidate_list)
     silent! 1,$ delete _
-    call append(0, a:candidate_list[0:b:niffler_candidate_limit-1])
-    %substitute/$/\=repeat(" ", winwidth(0))/
+    let candidate_list = a:candidate_list[0:b:niffler_candidate_limit - 1]
+    call map(candidate_list, 'substitute(v:val, "$", repeat(" ", winwidth(0)), "")')
+    call append(0, candidate_list)
     $ delete _
 endfunction
 
