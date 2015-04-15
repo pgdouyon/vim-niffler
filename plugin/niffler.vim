@@ -333,9 +333,7 @@ endfunction
 
 function! s:move_next_line(prompt)
     call cursor(line(".") + 1, col("."))
-    set cursorline!
-    set cursorline!
-    redraw
+    redraw!
     echon s:prompt a:prompt
     return a:prompt
 endfunction
@@ -343,9 +341,7 @@ endfunction
 
 function! s:move_prev_line(prompt)
     call cursor(line(".") - 1, col("."))
-    set cursorline!
-    set cursorline!
-    redraw
+    redraw!
     echon s:prompt a:prompt
     return a:prompt
 endfunction
