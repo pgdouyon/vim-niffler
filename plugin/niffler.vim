@@ -332,7 +332,9 @@ endfunction
 
 
 function! s:move_next_line(prompt)
-    call cursor(line(".") + 1, col("."))
+    let is_last_line = (line(".") == line("$"))
+    let next_line = (is_last_line ? 1 : line(".") + 1)
+    call cursor(next_line, col("."))
     redraw!
     echon s:prompt a:prompt
     return a:prompt
@@ -340,7 +342,9 @@ endfunction
 
 
 function! s:move_prev_line(prompt)
-    call cursor(line(".") - 1, col("."))
+    let is_first_line = (line(".") == 1)
+    let prev_line = (is_first_line ? line("$") : line(".") - 1)
+    call cursor(prev_line, col("."))
     redraw!
     echon s:prompt a:prompt
     return a:prompt
