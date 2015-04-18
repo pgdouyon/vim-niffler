@@ -240,6 +240,7 @@ function! s:niffler_setup(candidate_string)
     endif
     call s:open_niffler_buffer()
     call s:set_niffler_options()
+    call s:set_niffler_cursorline()
     let candidate_list = split(a:candidate_string, "\n")
     let b:niffler_candidate_list = candidate_list
     let b:niffler_candidate_string = a:candidate_string
@@ -265,8 +266,12 @@ function! s:set_niffler_options()
     silent! setlocal colorcolumn=0
     silent! setlocal buflisted noswapfile nospell nofoldenable noreadonly nowrap
     silent! setlocal nocursorcolumn nonumber norelativenumber
+endfunction
 
-    let b:niffler_save_matches = getmatches() | call clearmatches()
+
+function! s:set_niffler_cursorline()
+    let save_matches = filter(getmatches(), 'has_key(v:val, "pattern")')
+    let b:niffler_save_matches = save_matches | call clearmatches()
     let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
 endfunction
 
