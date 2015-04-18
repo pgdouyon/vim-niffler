@@ -47,7 +47,7 @@ if !exists("g:niffler_ignore_dirs")
     let g:niffler_ignore_dirs = []
 endif
 
-highlight default NifflerCursorLine ctermbg=57 guibg=#5f00ff
+highlight default link NifflerCursorLine Error
 
 
 " ======================================================================
