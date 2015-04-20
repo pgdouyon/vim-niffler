@@ -83,7 +83,6 @@ function! s:niffler_mru()
     call s:prune_mru_list()
     call s:niffler_setup(join(s:mru_list, "\n"))
     let b:niffler_save_wd = getcwd()
-    let b:niffler_new_file = 0
     let b:niffler_open_cmd = "edit"
     let b:niffler_split_cmd = "split"
 
@@ -97,7 +96,6 @@ function! s:niffler_buffer()
     let buflist_string = join(buflist, "\n")
     call s:niffler_setup(buflist_string)
     let b:niffler_save_wd = getcwd()
-    let b:niffler_new_file = 0
     let b:niffler_open_cmd = "buffer"
     let b:niffler_split_cmd = "sbuffer"
 
@@ -113,7 +111,6 @@ function! s:niffler_tags(use_current_buffer)
     endif
     call s:niffler_setup(taglist)
     let b:niffler_save_wd = getcwd()
-    let b:niffler_new_file = 0
     let b:niffler_open_cmd = (a:use_current_buffer ? "silent tag" : "tjump")
     let b:niffler_split_cmd = (a:use_current_buffer ? "silent stag" : "stjump")
 
