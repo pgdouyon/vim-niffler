@@ -238,6 +238,7 @@ function! s:niffler_setup(candidate_string)
     call s:open_niffler_buffer()
     call s:set_niffler_options()
     call s:set_niffler_cursorline()
+    call s:prune_mru_list()
     let b:niffler_candidates_original = a:candidate_string
     let b:niffler_candidates = a:candidate_string
     let b:niffler_candidate_limit = winheight(0)
@@ -595,7 +596,7 @@ command! -nargs=? NifflerTags call <SID>niffler_tags(<q-args> ==# "%")
 
 augroup niffler
     autocmd!
-    autocmd BufEnter * call <SID>update_mru_list(expand("%:p"))
+    autocmd BufLeave,VimLeavePre * call <SID>update_mru_list(expand("%:p"))
     autocmd CursorHold * call <SID>write_mru_cache_file()
 augroup END
 
