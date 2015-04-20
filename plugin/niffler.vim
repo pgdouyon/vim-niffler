@@ -17,6 +17,26 @@ let g:loaded_niffler = 1
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
+" ======================================================================
+" Global Config
+" ======================================================================
+function! s:set_default(variable, default)
+    if !exists(a:variable)
+        execute printf("let %s = %s", a:variable, a:default)
+    endif
+endfunction
+
+call s:set_default("g:niffler_mru_max_history", "30")
+call s:set_default("g:niffler_fuzzy_char", '"*"')
+call s:set_default("g:niffler_ignore_extensions", "[]")
+call s:set_default("g:niffler_ignore_dirs", "[]")
+
+highlight default link NifflerCursorLine Error
+
+
+" ======================================================================
+" Script Local Config
+" ======================================================================
 let s:prompt = "> "
 let s:match_id = 0
 
@@ -26,24 +46,6 @@ if !filereadable(s:mru_cache_file)
     call system("touch ".s:mru_cache_file)
 endif
 let s:mru_list = readfile(s:mru_cache_file)
-
-if !exists("g:niffler_mru_max_history")
-    let g:niffler_mru_max_history = 30
-endif
-
-if !exists("g:niffler_fuzzy_char")
-    let g:niffler_fuzzy_char = "*"
-endif
-
-if !exists("g:niffler_ignore_extensions")
-    let g:niffler_ignore_extensions = []
-endif
-
-if !exists("g:niffler_ignore_dirs")
-    let g:niffler_ignore_dirs = []
-endif
-
-highlight default link NifflerCursorLine Error
 
 
 " ======================================================================
