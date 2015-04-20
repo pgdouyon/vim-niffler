@@ -238,13 +238,12 @@ function! s:niffler_setup(candidate_string)
     call s:open_niffler_buffer()
     call s:set_niffler_options()
     call s:set_niffler_cursorline()
-    let candidate_list = split(a:candidate_string, "\n")
-    let b:niffler_candidate_list = candidate_list
-    let b:niffler_candidate_string = a:candidate_string
+    let b:niffler_candidates_original = a:candidate_string
+    let b:niffler_candidates = a:candidate_string
     let b:niffler_candidate_limit = winheight(0)
     let b:niffler_new_file = 0
     let b:niffler_isactive = 1
-    call s:display(candidate_list)
+    call s:display(split(a:candidate_string, "\n"))
 endfunction
 
 
@@ -304,7 +303,7 @@ endfunction
 function! s:backspace(prompt)
     let prompt = a:prompt[0:-2]
     let query = s:parse_query(prompt)
-    let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
+    let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(query)
     redraw
     echon s:prompt prompt
@@ -315,7 +314,7 @@ endfunction
 function! s:backward_kill_word(prompt)
     let prompt = matchstr(a:prompt, '.*\s\ze\S\+$')
     let query = s:parse_query(prompt)
-    let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
+    let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(query)
     redraw
     echon s:prompt prompt
@@ -325,7 +324,7 @@ endfunction
 
 function! s:backward_kill_line(prompt)
     let empty_prompt = ""
-    let b:niffler_candidate_string = join(b:niffler_candidate_list, "\n")
+    let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(empty_prompt)
     redraw
     echon s:prompt
@@ -452,15 +451,15 @@ let s:function_map = {
 " ======================================================================
 
 function! s:filter_candidate_list(query)
-    if empty(b:niffler_candidate_string)
+    if empty(b:niffler_candidates)
         return
     endif
     let sanitized_query = s:sanitize_query(a:query)
     let grep_cmd = s:translate_query_to_grep_cmd(sanitized_query)
-    let candidates = system(grep_cmd, b:niffler_candidate_string)
+    let candidates = system(grep_cmd, b:niffler_candidates)
     let candidate_list = split(candidates, "\n")
     if len(candidate_list) < b:niffler_candidate_limit
-        let b:niffler_candidate_string = candidates
+        let b:niffler_candidates = candidates
     endif
     call s:display(candidate_list)
 endfunction
