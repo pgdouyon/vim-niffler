@@ -81,7 +81,7 @@ endfunction
 
 function! s:niffler_mru()
     call s:prune_mru_list()
-    call s:niffler_setup(join(s:mru_list, "\n"))
+    call s:niffler_setup(join(reverse(copy(s:mru_list)), "\n"))
     let b:niffler_save_wd = getcwd()
     let b:niffler_open_cmd = "edit"
     let b:niffler_split_cmd = "split"
@@ -273,7 +273,7 @@ endfunction
 
 
 function! s:keypress_event_loop()
-    call cursor(line("$"), 1)
+    call cursor(1, 1)
     let prompt = ""
     redraw
     echon s:prompt
@@ -491,7 +491,7 @@ function! s:display(candidate_list)
     let candidate_list = a:candidate_list[0:b:niffler_candidate_limit - 1]
     call map(candidate_list, 'substitute(v:val, "$", repeat(" ", winwidth(0)), "")')
     call append(0, candidate_list)
-    $ delete _
+    $ delete _ | call cursor(1, 1)
 endfunction
 
 
