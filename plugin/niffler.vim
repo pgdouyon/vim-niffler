@@ -597,7 +597,7 @@ command! -nargs=? NifflerTags call <SID>niffler_tags(<q-args> ==# "%")
 augroup niffler
     autocmd!
     autocmd BufLeave,VimLeavePre * call <SID>update_mru_list(expand("%:p"))
-    autocmd CursorHold * call <SID>write_mru_cache_file()
+    autocmd CursorHold,VimLeave * call <SID>write_mru_cache_file()
 augroup END
 
 let &cpoptions = s:save_cpo
