@@ -312,7 +312,7 @@ endfunction
 
 
 function! s:backward_kill_word(prompt)
-    let prompt = matchstr(a:prompt, '.*\s\ze\S\+$')
+    let prompt = matchstr(a:prompt, '.\{-\}\ze\S\+\s*$')
     let query = s:parse_query(prompt)
     let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(query)
