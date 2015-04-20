@@ -1,11 +1,7 @@
 "==============================================================================
 "File:        niffler.vim
-"Description: Fuzzy file finder for Vim.  Supported modes are fuzzy file find by
-"             directory, fuzzy file find by VCS root directory, MRU fuzzy file
-"             find, and new file creation.
+"Description: Lightweight, fuzzy file finder for Vim.
 "Maintainer:  Pierre-Guy Douyon <pgdouyon@alum.mit.edu>
-"Version:     1.0.0
-"Last Change: 2014-07-20
 "License:     MIT <../LICENSE>
 "==============================================================================
 
