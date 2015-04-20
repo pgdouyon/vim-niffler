@@ -519,8 +519,9 @@ function! s:update_mru_list(fname)
     let gitcommit = (&l:filetype ==# 'gitcommit')
     let unlisted = (&l:buflisted == 0)
     let temp = (a:fname =~# '/te\?mp/')
-    let vcs_file = (a:fname =~# '\.\%(git\|svn\|hg\)/')
-    if !(scratch || quickfix || helpfile || gitcommit || unlisted || temp || vcs_file)
+    let vcs_file = (a:fname =~# '/\.\%(git\|svn\|hg\)/')
+    let empty_fname = empty(a:fname)
+    if !(scratch || quickfix || helpfile || gitcommit || unlisted || temp || vcs_file || empty_fname)
         call add(s:mru_list, a:fname)
     endif
 endfunction
@@ -569,7 +570,7 @@ command! -nargs=? NifflerTags call <SID>niffler_tags(<q-args> ==# "%")
 
 augroup niffler
     autocmd!
-    autocmd BufReadPost * call <SID>update_mru_list(expand("%:p"))
+    autocmd BufEnter * call <SID>update_mru_list(expand("%:p"))
     autocmd CursorHold * call <SID>write_mru_cache_file()
 augroup END
 
