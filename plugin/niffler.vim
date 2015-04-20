@@ -26,7 +26,7 @@ function! s:set_default(variable, default)
     endif
 endfunction
 
-call s:set_default("g:niffler_mru_max_history", "30")
+call s:set_default("g:niffler_mru_max_history", "50")
 call s:set_default("g:niffler_mru_ignore_buftypes", "[]")
 call s:set_default("g:niffler_mru_ignore_filetypes", "[]")
 call s:set_default("g:niffler_fuzzy_char", '"*"')
