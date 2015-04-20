@@ -488,10 +488,33 @@ endfunction
 
 function! s:display(candidate_list)
     silent! 1,$ delete _
-    let candidate_list = a:candidate_list[0:b:niffler_candidate_limit - 1]
-    call map(candidate_list, 'substitute(v:val, "$", repeat(" ", winwidth(0)), "")')
-    call append(0, candidate_list)
+    call s:sort_by_mru(a:candidate_list)
+    call map(a:candidate_list, 'substitute(v:val, "$", repeat(" ", winwidth(0)), "")')
+    call append(0, a:candidate_list)
     $ delete _ | call cursor(1, 1)
+endfunction
+
+
+function! s:sort_by_mru(candidate_list)
+    let candidate_set = s:get_candidate_set(a:candidate_list)
+    for mru in s:mru_list
+        let prefix_directory = escape(getcwd(), '\') . '/'
+        let mru_candidate = substitute(mru, '\V\^'.prefix_directory, '', '')
+        if has_key(candidate_set, mru_candidate)
+            let index = index(a:candidate_list, mru_candidate)
+            call insert(a:candidate_list, remove(a:candidate_list, index))
+        endif
+    endfor
+    return a:candidate_list
+endfunction
+
+
+function! s:get_candidate_set(candidate_list)
+    let candidate_set = {}
+    for candidate in a:candidate_list
+        let candidate_set[candidate] = 0
+    endfor
+    return candidate_set
 endfunction
 
 
