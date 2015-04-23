@@ -276,8 +276,7 @@ endfunction
 function! s:keypress_event_loop()
     call cursor(1, 1)
     let prompt = ""
-    redraw
-    echon s:prompt
+    call s:redraw_prompt(prompt)
     while exists("b:niffler_isactive")
         let nr = getchar()
         let char = !type(nr) ? nr2char(nr) : nr
@@ -295,8 +294,7 @@ function! s:update_prompt(prompt, char)
     let prompt = a:prompt . a:char
     let query = s:parse_query(prompt)
     call s:filter_candidate_list(query)
-    redraw
-    echon s:prompt prompt
+    call s:redraw_prompt(prompt)
     return prompt
 endfunction
 
@@ -306,8 +304,7 @@ function! s:backspace(prompt)
     let query = s:parse_query(prompt)
     let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(query)
-    redraw
-    echon s:prompt prompt
+    call s:redraw_prompt(prompt)
     return prompt
 endfunction
 
@@ -317,8 +314,7 @@ function! s:backward_kill_word(prompt)
     let query = s:parse_query(prompt)
     let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(query)
-    redraw
-    echon s:prompt prompt
+    call s:redraw_prompt(prompt)
     return prompt
 endfunction
 
@@ -327,8 +323,7 @@ function! s:backward_kill_line(prompt)
     let empty_prompt = ""
     let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(empty_prompt)
-    redraw
-    echon s:prompt
+    call s:redraw_prompt(empty_prompt)
     return empty_prompt
 endfunction
 
@@ -337,8 +332,9 @@ function! s:move_next_line(prompt)
     let is_last_line = (line(".") == line("$"))
     let next_line = (is_last_line ? 1 : line(".") + 1)
     call cursor(next_line, col("."))
-    redraw!
-    echon s:prompt a:prompt
+    call matchdelete(b:niffler_highlight_group)
+    let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    call s:redraw_prompt(a:prompt)
     return a:prompt
 endfunction
 
@@ -347,9 +343,16 @@ function! s:move_prev_line(prompt)
     let is_first_line = (line(".") == 1)
     let prev_line = (is_first_line ? line("$") : line(".") - 1)
     call cursor(prev_line, col("."))
-    redraw!
-    echon s:prompt a:prompt
+    call matchdelete(b:niffler_highlight_group)
+    let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    call s:redraw_prompt(a:prompt)
     return a:prompt
+endfunction
+
+
+function! s:redraw_prompt(prompt)
+    redraw
+    echon s:prompt a:prompt
 endfunction
 
 
@@ -419,8 +422,7 @@ function! s:paste_from_register(prompt)
         let prompt = a:prompt . paste_text
         let query = s:parse_query(prompt)
         call s:filter_candidate_list(query)
-        redraw
-        echon s:prompt prompt
+        call s:redraw_prompt(prompt)
         return prompt
     else
         return a:prompt
