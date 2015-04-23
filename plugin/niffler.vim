@@ -244,7 +244,7 @@ function! s:niffler_setup(candidate_string)
     let b:niffler_candidate_limit = winheight(0)
     let b:niffler_new_file = 0
     let b:niffler_isactive = 1
-    call s:display(split(a:candidate_string, "\n"))
+    call s:display(split(a:candidate_string, "\n")[0:b:niffler_candidate_limit - 1])
 endfunction
 
 
