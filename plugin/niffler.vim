@@ -274,7 +274,7 @@ endfunction
 
 
 function! s:keypress_event_loop()
-    call cursor(1, 1)
+    normal! gg
     let prompt = ""
     call s:redraw_prompt(prompt)
     while exists("b:niffler_isactive")
