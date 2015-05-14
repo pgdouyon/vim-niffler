@@ -397,7 +397,7 @@ function! s:open_selection(prompt, open_cmd)
         endif
         call system("touch ".selection)
     endif
-    call s:quit_niffler(prompt)
+    call s:close_niffler()
     execute "lchdir! " . niffler_wd
     execute a:open_cmd selection
     execute command
@@ -405,13 +405,17 @@ function! s:open_selection(prompt, open_cmd)
 endfunction
 
 
-function! s:quit_niffler(prompt)
+function! s:close_niffler(...)
     unlet b:niffler_isactive
     let save_wd = b:niffler_save_wd
+    let niffler_buffer = bufnr("%")
     call matchdelete(b:niffler_highlight_group)
     call setmatches(b:niffler_save_matches)
-    execute "keepalt keepjumps buffer ".b:niffler_origin_buffer
-    execute "lchdir! " . save_wd
+    execute "keepalt keepjumps buffer" b:niffler_origin_buffer
+    execute "silent! bwipeout!" niffler_buffer
+    execute "lchdir!" save_wd
+    redraw | echo
+    " above command is needed because Vim leaves the prompt on screen when there are no buffers open
 endfunction
 
 
@@ -443,8 +447,8 @@ let s:function_map = {
     \"\<C-S>" : function("<SID>open_split_window"),
     \"\<C-V>" : function("<SID>open_vert_split"),
     \"\<C-T>" : function("<SID>open_tab_window"),
-    \"\<Esc>" : function("<SID>quit_niffler"),
-    \"\<C-G>" : function("<SID>quit_niffler"),
+    \"\<Esc>" : function("<SID>close_niffler"),
+    \"\<C-G>" : function("<SID>close_niffler"),
     \"\<C-R>" : function("<SID>paste_from_register")
     \}
 
