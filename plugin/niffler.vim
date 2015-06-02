@@ -241,7 +241,7 @@ endfunction
 function! s:get_default_find_args()
     let default_args = ""
     if !empty(g:niffler_ignore_dirs)
-        let generate_path_expr = '"-path \"*".substitute(v:val, "[^/]$", "\\0/", "")."*\""'
+        let generate_path_expr = '"-path \"*".shellescape(v:val)."*\""'
         let ignore_dirs = join(map(copy(g:niffler_ignore_dirs), generate_path_expr), " -o ")
         let default_args = '\( '.ignore_dirs.' \) -prune -o '
     endif
@@ -255,7 +255,7 @@ function! s:filter_ignore_files(candidates)
     else
         let escape_period = 'escape(v:val, ".")'
         let ignore_files = join(map(copy(g:niffler_ignore_extensions), escape_period), '\|')
-        let filter_ignore_files = 'grep -v -e "\('.ignore_files.'\)$"'
+        let filter_ignore_files = 'grep -v -e ' . shellescape('\('.ignore_files.'\)$')
         let filtered_candidates = system(filter_ignore_files, a:candidates)
         return filtered_candidates
     endif
@@ -536,7 +536,7 @@ function! s:translate_query_to_grep_cmd(query)
     let grep_cmd = "grep"
     let grep_cmd_restricted = "grep -m ".b:niffler_candidate_limit
     let search_terms = split(a:query)
-    let translator = '"'.grep_cmd.'".((v:val =~# "\\u") ? "" : " -i")." -e \"".v:val."\""'
+    let translator = 'printf("%s %s -e %s", grep_cmd, (v:val =~# "\\u") ? "" : "-i", shellescape(v:val))'
     let grep_filter_cmd = join(map(search_terms, translator), " | ")
     let grep_filter_cmd_restricted = substitute(grep_filter_cmd, 'grep\ze [^|]*$', grep_cmd_restricted, '')
     return grep_filter_cmd_restricted
