@@ -82,7 +82,6 @@ endfunction
 function! s:niffler_mru()
     call s:prune_mru_list()
     call s:niffler_setup(join(reverse(copy(s:mru_list)), "\n"))
-    let b:niffler_save_wd = getcwd()
     let b:niffler_open_cmd = "edit"
     let b:niffler_split_cmd = "split"
 
@@ -95,7 +94,6 @@ function! s:niffler_buffer()
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
     let buflist_string = join(buflist, "\n")
     call s:niffler_setup(buflist_string)
-    let b:niffler_save_wd = getcwd()
     let b:niffler_open_cmd = "buffer"
     let b:niffler_split_cmd = "sbuffer"
 
@@ -566,7 +564,6 @@ function! s:sort_by_mru(candidate_list)
             call insert(a:candidate_list, remove(a:candidate_list, index))
         endif
     endfor
-    return a:candidate_list
 endfunction
 
 
