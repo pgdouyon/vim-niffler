@@ -426,23 +426,19 @@ endfunction
 function! s:open_file(prompt, open_cmd)
     let prompt = s:parse_query(a:prompt)
     let command = s:parse_command(a:prompt)
-    let selection = substitute(getline("."), '\s*$', '', '')
-    let niffler_wd = getcwd()
-    let save_wd = b:niffler_save_wd
+    let selection = fnamemodify(substitute(getline("."), '\s*$', '', ''), ":p")
 
     if b:niffler_new_file
         let new_file = input("New file name: ")
         let selection = selection."/".new_file
         if new_file =~ "/"
-            call mkdir(matchstr(getcwd()."/".selection, '.*\ze\/'), "p")
+            call mkdir(fnamemodify(selection, ":h"), "p")
         endif
-        call system("touch ".selection)
+        call system("touch ".shellescape(selection))
     endif
     call s:close_niffler()
-    execute "lchdir! " . niffler_wd
-    execute a:open_cmd selection
+    execute a:open_cmd fnameescape(selection)
     execute command
-    execute "lchdir! " . save_wd
 endfunction
 
 
