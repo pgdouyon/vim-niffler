@@ -40,7 +40,7 @@ highlight default link NifflerCursorLine Error
 " Script Local Config
 " ======================================================================
 let s:prompt = "> "
-let s:match_id = 0
+let s:tag_delimiter = '  ==>  '
 
 let s:script_folder = expand("<sfile>:p:h")
 let s:mru_cache_file = s:script_folder."/niffler_mru_list.txt"
@@ -105,15 +105,16 @@ endfunction
 
 function! s:niffler_tags(use_current_buffer)
     if a:use_current_buffer
-        let taglist = s:taglist_current_buffer()
+        let [taglist, parse_tag_excmd, parse_tag_filename] = s:taglist_current_buffer()
     else
-        let taglist = s:taglist()
+        let [taglist, parse_tag_excmd, parse_tag_filename] = s:taglist()
     endif
     call s:niffler_setup(taglist)
-    let b:niffler_save_wd = getcwd()
-    let b:niffler_open_cmd = (a:use_current_buffer ? "silent tag" : "tjump")
-    let b:niffler_split_cmd = (a:use_current_buffer ? "silent stag" : "stjump")
-
+    let b:niffler_tag_search = 1
+    let b:niffler_open_cmd = "edit"
+    let b:niffler_split_cmd = "split"
+    let b:niffler_parse_tag_excmd = parse_tag_excmd
+    let b:niffler_parse_tag_filename = parse_tag_filename
     call s:keypress_event_loop()
 endfunction
 
@@ -122,23 +123,27 @@ function! s:taglist()
     let taglist = ""
     let tagfiles = tagfiles()
     for tagfile in tagfiles
-        let tags_cmd = 'grep -v ^!_TAG_ %s | cut -f1 | sort -u'
-        let tags = system(printf(tags_cmd, tagfile))
+        let tags_cmd = "grep -v ^!_TAG_ %s | cut -f1-3 | sed -e 's/\t/%s/g'"
+        let tags = system(printf(tags_cmd, tagfile, s:tag_delimiter))
         let taglist .= tags
     endfor
-    return taglist
+    let parse_tag_excmd = 'matchstr(split(v:val, "\\V".s:tag_delimiter)[2], ".*\\$\\ze")'
+    let parse_tag_filename = 'split(v:val, "\\V".s:tag_delimiter)[1]'
+    return [taglist, parse_tag_excmd, parse_tag_filename]
 endfunction
 
 
 function! s:taglist_current_buffer()
-    if executable("ctags")
-        let current_buffer = expand("%:p")
-        let taglist_cmd = 'ctags -f - %s | cut -f1 | sort -u'
-        let taglist = system(printf(taglist_cmd, current_buffer))
-    else
+    if !executable("ctags")
         throw "[Niffler] - Error: ctags executable not found.\nctags is required to run :NifflerTags %"
+    else
+        let current_buffer = expand("%:p")
+        let taglist_cmd = "ctags -f - %s | cut -f1,3 | sed -e 's/\t/%s/g'"
+        let taglist = system(printf(taglist_cmd, current_buffer, s:tag_delimiter))
     endif
-    return taglist
+    let parse_tag_excmd = 'matchstr(split(v:val, "\\V".s:tag_delimiter)[1], ".*\\$\\ze")'
+    let parse_tag_filename = string(expand("%:p"))
+    return [taglist, parse_tag_excmd, parse_tag_filename]
 endfunction
 
 
@@ -383,6 +388,15 @@ endfunction
 
 
 function! s:open_selection(prompt, open_cmd)
+    if get(b:, "niffler_tag_search", 0)
+        call s:open_tag(a:prompt, a:open_cmd)
+    else
+        call s:open_file(a:prompt, a:open_cmd)
+    endif
+endfunction
+
+
+function! s:open_file(prompt, open_cmd)
     let prompt = s:parse_query(a:prompt)
     let command = s:parse_command(a:prompt)
     let selection = substitute(getline("."), '\s*$', '', '')
@@ -405,9 +419,20 @@ function! s:open_selection(prompt, open_cmd)
 endfunction
 
 
+function! s:open_tag(prompt, open_cmd)
+    let selection = substitute(getline("."), '\s*$', '', '')
+    let tag_excmd = map([selection], b:niffler_parse_tag_excmd)[0]
+    let tag_filename = map([selection], b:niffler_parse_tag_filename)[0]
+    let open_cmd = bufexists(tag_filename) ? "buffer" : a:open_cmd
+    call s:close_niffler()
+    normal! m'
+    execute "silent keepjumps keeppatterns" open_cmd "+".escape(tag_excmd, ' \') fnameescape(tag_filename)
+endfunction
+
+
 function! s:close_niffler(...)
     unlet b:niffler_isactive
-    let save_wd = b:niffler_save_wd
+    let save_wd = get(b:, "niffler_save_wd", getcwd())
     let niffler_buffer = bufnr("%")
     call matchdelete(b:niffler_highlight_group)
     call setmatches(b:niffler_save_matches)
