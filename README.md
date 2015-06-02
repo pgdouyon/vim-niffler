@@ -48,13 +48,14 @@ of the search query.
 
 Niffler has several different modes:
 
-| Command           | Description                                                         |
-| ----------------- | ------------------------------------------------------------------- |
-| `Niffler`         | Fuzzy file search                                                   |
-| `NifflerMRU`      | Fuzzy file search on MRU cache                                      |
-| `NifflerBuffer`   | Fuzzy file search on buffer list                                    |
-| `NifflerTags`     | Fuzzy file search on ctags list                                     |
-| `NifflerGlobal`   | Fuzzy file search on GNU global file list                           |
+| Command           | Description                                                       |
+| ----------------- | ------------------------------------------------------------------|
+| `Niffler`         | Fuzzy file search                                                 |
+| `NifflerMRU`      | Fuzzy file search on MRU cache                                    |
+| `NifflerBuffer`   | Fuzzy file search on buffer list                                  |
+| `NifflerTags`     | Fuzzy file search on ctags list                                   |
+| `NifflerTselect`  | Fuzzy file search on matching tags                                |
+| `NifflerGlobal`   | Fuzzy file search on GNU global file list                         |
 
 The `Niffler` command takes any number of optional arguments and has the following structure:
 
@@ -65,11 +66,18 @@ The `Niffler` command takes any number of optional arguments and has the followi
 * -all: search all files/directories, including hidden and any ignored files
 * Directory to search from
 
-The `NifflerTags` command can optionally take a % as argument to only search
-for tags in the current file.
-
 The size of the MRU cache (default 50) can be configured with the variable
 `g:niffler_mru_max_history`.
+
+
+#### Ctags Filtering
+
+- The `NifflerTags` command can optionally take a % as argument to only search
+for tags in the current file.
+
+- The `NifflerTselect` command can be used to replace the built-in `:tselect`
+command and filter a list of matching tags.
+    - `nnoremap <silent> g] :NifflerTselect<CR>`
 
 
 ### Key Mappings

@@ -147,6 +147,33 @@ function! s:taglist_current_buffer()
 endfunction
 
 
+function! s:niffler_tselect(identifier)
+    let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
+    redir => tselect_out
+    execute "silent tselect" identifier
+    redir END
+
+    let tselect_lines_sanitized = split(tselect_out, "\n")[1:-2]
+    let tselect_candidates = []
+    for i in range(0, len(tselect_lines_sanitized) - 1, 2)
+        let file_regex = '\c\V'.identifier.'\s\*\zs\.\*'
+        let file = matchstr(tselect_lines_sanitized[i], file_regex)
+        let tag_location = matchstr(tselect_lines_sanitized[i+1], '^\s*\zs.*')
+        let candidate = join([file, tag_location], s:tag_delimiter)
+        call add(tselect_candidates, candidate)
+    endfor
+    execute len(tselect_candidates) "split"
+    call s:niffler_setup(join(tselect_candidates, "\n"))
+    let b:niffler_tag_search = 1
+    let b:niffler_preview = 1
+    let b:niffler_open_cmd = "edit"
+    let b:niffler_split_cmd = "split"
+    let b:niffler_parse_tag_excmd = '"/^\\s*\\V" . split(v:val, "\\V".s:tag_delimiter)[1]'
+    let b:niffler_parse_tag_filename = 'split(v:val, "\\V".s:tag_delimiter)[0]'
+    call s:keypress_event_loop()
+endfunction
+
+
 function! s:niffler_global(args)
     if !executable("global")
         echoerr "Niffler: `global` command not found. Unable to build list of files."
@@ -433,12 +460,14 @@ endfunction
 function! s:close_niffler(...)
     unlet b:niffler_isactive
     let save_wd = get(b:, "niffler_save_wd", getcwd())
+    let preview = get(b:, "niffler_preview", 0)
     let niffler_buffer = bufnr("%")
     call matchdelete(b:niffler_highlight_group)
     call setmatches(b:niffler_save_matches)
     execute "keepalt keepjumps buffer" b:niffler_origin_buffer
     execute "silent! bwipeout!" niffler_buffer
     execute "lchdir!" save_wd
+    if preview | wincmd c | endif
     redraw | echo
     " above command is needed because Vim leaves the prompt on screen when there are no buffers open
 endfunction
@@ -619,6 +648,7 @@ command! -nargs=* -complete=dir NifflerGlobal call <SID>niffler_global(<q-args>)
 command! -nargs=0 NifflerMRU call <SID>niffler_mru()
 command! -nargs=0 NifflerBuffer call <SID>niffler_buffer()
 command! -nargs=? NifflerTags call <SID>niffler_tags(<q-args> ==# "%")
+command! -nargs=? NifflerTselect call <SID>niffler_tselect(<q-args>)
 
 
 " ======================================================================
