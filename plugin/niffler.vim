@@ -282,8 +282,10 @@ endfunction
 
 function! s:open_niffler_buffer()
     let origin_buffer = bufname("%")
+    let save_cursor = getpos(".")
     keepalt keepjumps edit __Niffler__
     let b:niffler_origin_buffer = origin_buffer
+    let b:niffler_save_cursor = save_cursor
 endfunction
 
 
@@ -457,6 +459,7 @@ function! s:close_niffler(...)
     unlet b:niffler_isactive
     let save_wd = get(b:, "niffler_save_wd", getcwd())
     let preview = get(b:, "niffler_preview", 0)
+    let save_cursor = b:niffler_save_cursor
     let niffler_buffer = bufnr("%")
     call matchdelete(b:niffler_highlight_group)
     call setmatches(b:niffler_save_matches)
@@ -464,6 +467,7 @@ function! s:close_niffler(...)
     execute "silent! bwipeout!" niffler_buffer
     execute "lchdir!" save_wd
     if preview | wincmd c | endif
+    call setpos(".", save_cursor)
     redraw | echo
     " above command is needed because Vim leaves the prompt on screen when there are no buffers open
 endfunction
