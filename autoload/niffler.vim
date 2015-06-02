@@ -211,7 +211,7 @@ endfunction
 function! s:get_default_find_args()
     let default_args = ""
     if !empty(g:niffler_ignore_dirs)
-        let generate_path_expr = '"-path \"*".shellescape(v:val)."*\""'
+        let generate_path_expr = 'printf("-path %s", shellescape("*".substitute(v:val, "[^/]$", "\\0/", ""). "*"))'
         let ignore_dirs = join(map(copy(g:niffler_ignore_dirs), generate_path_expr), " -o ")
         let default_args = '\( '.ignore_dirs.' \) -prune -o '
     endif
