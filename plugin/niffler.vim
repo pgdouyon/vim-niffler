@@ -32,6 +32,7 @@ call s:set_default("g:niffler_mru_ignore_filetypes", "[]")
 call s:set_default("g:niffler_fuzzy_char", '"*"')
 call s:set_default("g:niffler_ignore_extensions", "[]")
 call s:set_default("g:niffler_ignore_dirs", "[]")
+call s:set_default("g:niffler_user_command", '""')
 
 highlight default link NifflerCursorLine Error
 

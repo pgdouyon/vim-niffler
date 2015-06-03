@@ -65,9 +65,6 @@ The `Niffler` command takes any number of optional arguments and has the followi
 * -vcs: search from git root directory of current file
 * Directory to search from
 
-The size of the MRU cache (default 50) can be configured with the variable
-`g:niffler_mru_max_history`.
-
 
 #### Ctags Filtering
 
@@ -103,26 +100,26 @@ command and filter a list of matching tags.
 
 ### Configuration
 
+- `g:niffler_user_command`
+    - Custom file indexing command, use %s in place of the target directory
+    - i.e. `let g:niffler_user_command = 'ag %s -g ""'`
 - `g:niffler_ignore_extensions`
     - List of file extensions to exclude from Niffler results
+    - Ignored when `g:niffler_user_command` is non-empty
 - `g:niffler_ignore_dirs`
     - List of directories to exclude from Niffler results
     - Helpful for large directories that could slow Niffler down
+    - Ignored when `g:niffler_user_command` is non-empty
+- `g:niffler_mru_max_history`
+    - Size of the MRU cache (default 50)
 
 
 Requirements
 ------------
 
-Niffler currently requires the `find`, `grep`, and `touch` utilities for full
+Niffler currently requires the `grep`, `cut`, and `sed` utilities for full
 support.  Niffler is not tested on Windows and its current level of support is
 unknown.
-
-**Note**: If you use OS X, I highly recommend aliasing the BSD findutils with
-their GNU counterparts, which I've found can speed up find queries by a factor
-of 2.  This might cause some problems with the `locate` command so use at your
-own discretion but you can install the GNU versions with the command:
-
-`brew install findutils --with-default-names`
 
 
 Installation

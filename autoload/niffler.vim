@@ -194,11 +194,13 @@ endfunction
 
 
 function! s:find_files()
+    if !empty(g:niffler_user_command)
+        return system(printf(g:niffler_user_command, "."))
+    endif
     let find_args = s:get_default_find_args()
     let find_cmd = "find * " . find_args . "2>/dev/null"
     let find_result = system(find_cmd)
-    let filtered_files = s:filter_ignore_files(find_result)
-    return filtered_files
+    return s:filter_ignore_files(find_result)
 endfunction
 
 
