@@ -46,6 +46,7 @@ command! -nargs=0 NifflerMRU call niffler#mru()
 command! -nargs=0 NifflerBuffer call niffler#buffer()
 command! -nargs=? NifflerTags call niffler#tags(<q-args> ==# "%")
 command! -nargs=? NifflerTselect call niffler#tselect(<q-args>)
+command! -nargs=? NifflerTjump call niffler#tjump(<q-args>)
 
 
 " ======================================================================

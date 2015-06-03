@@ -48,14 +48,15 @@ of the search query.
 
 Niffler has several different modes:
 
-| Command           | Description                                                       |
-| ----------------- | ------------------------------------------------------------------|
-| `Niffler`         | Fuzzy file search                                                 |
-| `NifflerMRU`      | Fuzzy file search on MRU cache                                    |
-| `NifflerBuffer`   | Fuzzy file search on buffer list                                  |
-| `NifflerTags`     | Fuzzy file search on ctags list                                   |
-| `NifflerTselect`  | Fuzzy file search on matching tags                                |
-| `NifflerGlobal`   | Fuzzy file search on GNU global file list                         |
+| Command           | Description                                                           |
+| ----------------- | ----------------------------------------------------------------------|
+| `Niffler`         | Fuzzy file search                                                     |
+| `NifflerMRU`      | Fuzzy file search on MRU cache                                        |
+| `NifflerBuffer`   | Fuzzy file search on buffer list                                      |
+| `NifflerTags`     | Fuzzy file search on ctags list                                       |
+| `NifflerTselect`  | Fuzzy file search on matching tags                                    |
+| `NifflerTjump`    | Fuzzy file search on matching tags, jump directly if only one match   |
+| `NifflerGlobal`   | Fuzzy file search on GNU global file list                             |
 
 The `Niffler` command takes any number of optional arguments and has the following structure:
 
@@ -78,6 +79,12 @@ for tags in the current file.
 - The `NifflerTselect` command can be used to replace the built-in `:tselect`
 command and filter a list of matching tags.
     - `nnoremap <silent> g] :NifflerTselect<CR>`
+
+- The `NifflerTjump` command can similarly be used to replace the built-in
+  `:tjump` command.  The command will jump directly to a tag if there is only
+  one match and otherwise will present a list of matching tags to filter
+    - `nnoremap <silent> g<C-]> :NifflerTjump<CR>`
+
 
 
 ### Key Mappings

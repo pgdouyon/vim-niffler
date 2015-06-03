@@ -144,6 +144,17 @@ function! niffler#tselect(identifier)
 endfunction
 
 
+function! niffler#tjump(identifier)
+    let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
+    let matching_tags = taglist("^".identifier."$")
+    if len(matching_tags) == 1
+        execute "tag" identifier
+    else
+        call niffler#tselect(identifier)
+    endif
+endfunction
+
+
 function! niffler#global(args)
     if !executable("global")
         echoerr "Niffler: `global` command not found. Unable to build list of files."
