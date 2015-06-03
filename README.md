@@ -60,11 +60,9 @@ Niffler has several different modes:
 
 The `Niffler` command takes any number of optional arguments and has the following structure:
 
-`Niffler [-vcs] [-new] [-all] [DIRECTORY]`
+`Niffler [-vcs] [DIRECTORY]`
 
 * -vcs: search from git root directory of current file
-* -new: search for directory and enter new file name
-* -all: search all files/directories, including hidden and any ignored files
 * Directory to search from
 
 The size of the MRU cache (default 50) can be configured with the variable

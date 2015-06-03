@@ -32,18 +32,15 @@ function! niffler#niffler(args)
     endif
     let dir = matchstr(a:args, '\%(-\S\+\s*\)*\zs.*$')
     let opts = matchstr(a:args, '\%(-\S\+\s*\)\+')
-    let new = (opts =~# "-new")
     let vcs = (opts =~# "-vcs")
-    let all = (opts =~# "-all")
 
     let save_wd = getcwd()
     call s:change_working_directory((!empty(dir) ? dir : expand("$HOME")), vcs)
 
-    let candidate_string = s:find_files(all, new)
+    let candidate_string = s:find_files()
     call s:niffler_setup(candidate_string)
 
     let b:niffler_save_wd = save_wd
-    let b:niffler_new_file = new
     let b:niffler_open_cmd = "edit"
     let b:niffler_split_cmd = "split"
 
@@ -162,7 +159,6 @@ function! niffler#global(args)
     endif
     let dir = matchstr(a:args, '\%(-\S\+\s*\)*\zs.*$')
     let opts = matchstr(a:args, '\%(-\S\+\s*\)\+')
-    let new = (opts =~# "-new")
 
     let save_wd = getcwd()
     let global_root = s:get_global_root()
@@ -172,7 +168,6 @@ function! niffler#global(args)
     call s:niffler_setup(candidate_string)
 
     let b:niffler_save_wd = save_wd
-    let b:niffler_new_file = new
     let b:niffler_open_cmd = "edit"
     let b:niffler_split_cmd = "split"
 
@@ -198,20 +193,8 @@ function! s:change_working_directory(default_dir, vcs_root)
 endfunction
 
 
-function! s:find_files(unrestricted, new_file)
+function! s:find_files()
     let find_args = s:get_default_find_args()
-    if a:unrestricted
-        let find_args .= "\( -path '*/\.git*' -o -path '*/\.svn*' -o -path '*/\.hg*' \) -prune -o "
-    else
-        let find_args .= "-path '*/\.*' -prune -o "
-    endif
-
-    if a:new_file
-        let find_args .= '-type d -print '
-    else
-        let find_args .= '\( -type f -o -type l \) -print '
-    endif
-
     let find_cmd = "find * " . find_args . "2>/dev/null"
     let find_result = system(find_cmd)
     let filtered_files = s:filter_ignore_files(find_result)
@@ -220,13 +203,13 @@ endfunction
 
 
 function! s:get_default_find_args()
-    let default_args = ""
+    let ignore_path_args = ""
     if !empty(g:niffler_ignore_dirs)
         let generate_path_expr = 'printf("-path %s", shellescape("*".substitute(v:val, "[^/]$", "\\0/", ""). "*"))'
         let ignore_dirs = join(map(copy(g:niffler_ignore_dirs), generate_path_expr), " -o ")
-        let default_args = '\( '.ignore_dirs.' \) -prune -o '
+        let ignore_path_args = '\( '.ignore_dirs.' \) -prune -o '
     endif
-    return default_args
+    return ignore_path_args . ' -path "*/\.*" -prune -o \( -type f -o -type l \) -print '
 endfunction
 
 
@@ -255,7 +238,6 @@ function! s:niffler_setup(candidate_string)
     let b:niffler_candidates_original = a:candidate_string
     let b:niffler_candidates = a:candidate_string
     let b:niffler_candidate_limit = winheight(0)
-    let b:niffler_new_file = 0
     let b:niffler_isactive = 1
     call s:display(split(a:candidate_string, "\n")[0:b:niffler_candidate_limit - 1])
 endfunction
@@ -425,15 +407,6 @@ function! s:open_file(prompt, open_cmd)
     let prompt = s:parse_query(a:prompt)
     let command = s:parse_command(a:prompt)
     let selection = fnamemodify(substitute(getline("."), '\s*$', '', ''), ":p")
-
-    if b:niffler_new_file
-        let new_file = input("New file name: ")
-        let selection = selection."/".new_file
-        if new_file =~ "/"
-            call mkdir(fnamemodify(selection, ":h"), "p")
-        endif
-        call system("touch ".shellescape(selection))
-    endif
     call s:close_niffler()
     execute a:open_cmd fnameescape(selection)
     execute command
