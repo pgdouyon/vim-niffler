@@ -123,12 +123,12 @@ function! niffler#tselect(identifier)
     execute "silent tselect" identifier
     redir END
 
-    let tselect_lines_sanitized = split(tselect_out, "\n")[1:-2]
+    let tselect_lines_sanitized = join(split(tselect_out, "\n")[1:-2], "\n")
     let tselect_candidates = []
-    for i in range(0, len(tselect_lines_sanitized) - 1, 2)
+    for tag in split(tselect_lines_sanitized, '\n\ze\s\{0,2\}\d')
         let file_regex = '\c\V'.identifier.'\s\*\zs\.\*'
-        let file = matchstr(tselect_lines_sanitized[i], file_regex)
-        let tag_location = matchstr(tselect_lines_sanitized[i+1], '^\s*\zs.*')
+        let file = matchstr(split(tag, "\n")[0], file_regex)
+        let tag_location = matchstr(split(tag, "\n")[-1], '^\s*\zs.*')
         let candidate = join([file, tag_location], s:tag_delimiter)
         call add(tselect_candidates, candidate)
     endfor
