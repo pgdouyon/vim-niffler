@@ -91,7 +91,7 @@ function! s:taglist()
         let taglist .= tags
     endfor
     let parse_tag_excmd = 'printf("/^\\s*\\V%s", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "\\"))'
-    let parse_tag_filename = 'matchstr(v:val, ''^\S*\s*\zs.\{-\}\ze\\\@<!\s'')'
+    let parse_tag_filename = 'substitute(matchstr(v:val, ''^\S*\s*\zs.\{-\}\ze\\\@<!\s''), "\\\\ ", " ", "g")'
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
     return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
 endfunction
@@ -130,7 +130,7 @@ function! niffler#tselect(identifier)
     endfor
     execute len(tselect_candidates) "split"
     let parse_tag_excmd = '"/^\\s*\\V" . escape(matchstr(v:val, ''^.\{-\}\\\@<!\s\+\zs.*''), "\\")'
-    let parse_tag_filename = 'split(v:val, ''\\\@<!\s\+'')[0]'
+    let parse_tag_filename = 'substitute(split(v:val, ''\\\@<!\s\+'')[0], "\\\\ ", " ", "g")'
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
     let niffler_options = {"tag_search": 1, "preview": 1, "open_cmd": "edit", "split_cmd": "split",
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
