@@ -38,22 +38,17 @@ function! niffler#niffler(args)
     call s:change_working_directory((!empty(dir) ? dir : expand("$HOME")), vcs)
 
     let candidate_string = s:find_files()
-    call s:niffler_setup(candidate_string)
-
-    let b:niffler_save_wd = save_wd
-    let b:niffler_open_cmd = "edit"
-    let b:niffler_split_cmd = "split"
-
+    let niffler_options = {"save_wd": save_wd, "open_cmd": "edit",
+            \ "split_cmd": "split", "display_preprocessor": function("s:sort_by_mru")}
+    call s:niffler_setup(candidate_string, niffler_options)
     call s:keypress_event_loop()
 endfunction
 
 
 function! niffler#mru()
+    let niffler_options = {"open_cmd": "edit", "split_cmd": "split"}
     call s:prune_mru_list()
-    call s:niffler_setup(join(reverse(copy(s:mru_list)), "\n"))
-    let b:niffler_open_cmd = "edit"
-    let b:niffler_split_cmd = "split"
-
+    call s:niffler_setup(join(reverse(copy(s:mru_list)), "\n"), niffler_options)
     call s:keypress_event_loop()
 endfunction
 
@@ -62,10 +57,9 @@ function! niffler#buffer()
     redir => buffers | silent ls | redir END
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
     let buflist_string = join(buflist, "\n")
-    call s:niffler_setup(buflist_string)
-    let b:niffler_open_cmd = "buffer"
-    let b:niffler_split_cmd = "sbuffer"
-
+    let niffler_options = {"open_cmd": "buffer", "split_cmd": "sbuffer",
+            \ "display_preprocessor": function("s:sort_by_mru")}
+    call s:niffler_setup(buflist_string, niffler_options)
     call s:keypress_event_loop()
 endfunction
 
@@ -76,12 +70,9 @@ function! niffler#tags(use_current_buffer)
     else
         let [taglist, parse_tag_excmd, parse_tag_filename] = s:taglist()
     endif
-    call s:niffler_setup(taglist)
-    let b:niffler_tag_search = 1
-    let b:niffler_open_cmd = "edit"
-    let b:niffler_split_cmd = "split"
-    let b:niffler_parse_tag_excmd = parse_tag_excmd
-    let b:niffler_parse_tag_filename = parse_tag_filename
+    let niffler_options = {"tag_search": 1, "open_cmd": "edit", "split_cmd": "split",
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
+    call s:niffler_setup(taglist, niffler_options)
     call s:keypress_event_loop()
 endfunction
 
@@ -130,13 +121,11 @@ function! niffler#tselect(identifier)
         call add(tselect_candidates, candidate)
     endfor
     execute len(tselect_candidates) "split"
-    call s:niffler_setup(join(tselect_candidates, "\n"))
-    let b:niffler_tag_search = 1
-    let b:niffler_preview = 1
-    let b:niffler_open_cmd = "edit"
-    let b:niffler_split_cmd = "split"
-    let b:niffler_parse_tag_excmd = '"/^\\s*\\V" . split(v:val, "\\V".s:tag_delimiter)[1]'
-    let b:niffler_parse_tag_filename = 'split(v:val, "\\V".s:tag_delimiter)[0]'
+    let parse_tag_excmd = '"/^\\s*\\V" . split(v:val, "\\V".s:tag_delimiter)[1]'
+    let parse_tag_filename = 'split(v:val, "\\V".s:tag_delimiter)[0]'
+    let niffler_options = {"tag_search": 1, "preview": 1, "open_cmd": "edit", "split_cmd": "split",
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
+    call s:niffler_setup(join(tselect_candidates, "\n"), niffler_options)
     call s:keypress_event_loop()
 endfunction
 
@@ -165,12 +154,9 @@ function! niffler#global(args)
     call s:change_working_directory((!empty(dir) ? dir : global_root), 0)
 
     let candidate_string = system("global -P '.*'")
-    call s:niffler_setup(candidate_string)
-
-    let b:niffler_save_wd = save_wd
-    let b:niffler_open_cmd = "edit"
-    let b:niffler_split_cmd = "split"
-
+    let niffler_options = {"save_wd": save_wd, "open_cmd": "edit",
+            \ "split_cmd": "split", "display_preprocessor": function("s:sort_by_mru")}
+    call s:niffler_setup(candidate_string, niffler_options)
     call s:keypress_event_loop()
 endfunction
 
@@ -228,7 +214,7 @@ function! s:filter_ignore_files(candidates)
 endfunction
 
 
-function! s:niffler_setup(candidate_string)
+function! s:niffler_setup(candidate_string, options)
     if !executable("grep")
         throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
         return
@@ -241,6 +227,9 @@ function! s:niffler_setup(candidate_string)
     let b:niffler_candidates = a:candidate_string
     let b:niffler_candidate_limit = winheight(0)
     let b:niffler_isactive = 1
+    for option_pair in items(a:options)
+        let b:niffler_{option_pair[0]} = option_pair[1]
+    endfor
     call s:display(split(a:candidate_string, "\n")[0:b:niffler_candidate_limit - 1])
 endfunction
 
@@ -522,10 +511,23 @@ endfunction
 
 function! s:display(candidate_list)
     silent! 1,$ delete _
-    call s:sort_by_mru(a:candidate_list)
-    call map(a:candidate_list, 'substitute(v:val, "$", repeat(" ", winwidth(0)), "")')
-    call append(0, a:candidate_list)
+    let candidate_list = s:preprocess_candidate_list(a:candidate_list)
+    call map(candidate_list, 'substitute(v:val, "$", repeat(" ", winwidth(0)), "")')
+    call append(0, candidate_list)
     $ delete _ | call cursor(1, 1)
+endfunction
+
+
+function! s:preprocess_candidate_list(candidate_list)
+    let candidate_list = a:candidate_list
+    if exists("b:niffler_display_preprocessor")
+        if type(b:niffler_display_preprocessor) == type("")
+            let candidate_list = eval(substitute(b:niffler_display_preprocessor, '\<v:val\>', 'a:candidate_list', 'g'))
+        else
+            let candidate_list = b:niffler_display_preprocessor(a:candidate_list)
+        endif
+    endif
+    return candidate_list
 endfunction
 
 
@@ -539,6 +541,7 @@ function! s:sort_by_mru(candidate_list)
             call insert(a:candidate_list, remove(a:candidate_list, index))
         endif
     endfor
+    return a:candidate_list
 endfunction
 
 
