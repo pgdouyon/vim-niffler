@@ -12,7 +12,6 @@ set cpoptions&vim
 " Script Local Config
 " ======================================================================
 let s:prompt = "> "
-let s:tag_delimiter = '  ==>  '
 
 let s:autoload_folder = expand("<sfile>:p:h")
 let s:mru_cache_file = s:autoload_folder."/niffler_mru_list.txt"
@@ -66,12 +65,13 @@ endfunction
 
 function! niffler#tags(use_current_buffer)
     if a:use_current_buffer
-        let [taglist, parse_tag_excmd, parse_tag_filename] = s:taglist_current_buffer()
+        let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist_current_buffer()
     else
-        let [taglist, parse_tag_excmd, parse_tag_filename] = s:taglist()
+        let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist()
     endif
     let niffler_options = {"tag_search": 1, "open_cmd": "edit", "split_cmd": "split",
-            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
+            \ "display_preprocessor": display_preprocessor}
     call s:niffler_setup(taglist, niffler_options)
     call s:keypress_event_loop()
 endfunction
@@ -81,13 +81,19 @@ function! s:taglist()
     let taglist = ""
     let tagfiles = tagfiles()
     for tagfile in tagfiles
-        let tags_cmd = "grep -v ^!_TAG_ %s | cut -f1-3 | sed -e 's/\t/%s/g'"
-        let tags = system(printf(tags_cmd, tagfile, s:tag_delimiter))
+        let not_tab = "[^\t]*"
+        let escaped_space = '\1\\ '
+        let escape_filename_space = escape(printf("s/^(%s\t%s[^\\]) /%s/", not_tab, not_tab, escaped_space), '()')
+        let escape_filename_spaces = printf("-e ':loop' -e '%s' -e 't loop'", escape_filename_space)
+        let trim_pattern_noise = escape("-e 's:/^[ \t]*(.*)[ \t]*$/;\":\\1:'", '^$()')
+        let tags_cmd = "grep -v ^!_TAG_ %s | sed %s %s | cut -f1-3"
+        let tags = system(printf(tags_cmd, tagfile, escape_filename_spaces, trim_pattern_noise))
         let taglist .= tags
     endfor
-    let parse_tag_excmd = 'matchstr(split(v:val, "\\V".s:tag_delimiter)[2], ".*\\$\\ze")'
-    let parse_tag_filename = 'split(v:val, "\\V".s:tag_delimiter)[1]'
-    return [taglist, parse_tag_excmd, parse_tag_filename]
+    let parse_tag_excmd = 'printf("/^\\s*\\V%s", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "\\"))'
+    let parse_tag_filename = 'matchstr(v:val, ''^\S*\s*\zs.\{-\}\ze\\\@<!\s'')'
+    let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
+    return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
 endfunction
 
 
@@ -96,12 +102,14 @@ function! s:taglist_current_buffer()
         throw "[Niffler] - Error: ctags executable not found.\nctags is required to run :NifflerTags %"
     else
         let current_buffer = expand("%:p")
-        let taglist_cmd = "ctags -f - %s | cut -f1,3 | sed -e 's/\t/%s/g'"
-        let taglist = system(printf(taglist_cmd, current_buffer, s:tag_delimiter))
+        let trim_pattern_noise = escape("s:/^[ \t]*(.*)[ \t]*$/;\":\\1:", '^$()')
+        let taglist_cmd = "ctags -f - %s | sed -e '%s' | cut -f1,3"
+        let taglist = system(printf(taglist_cmd, current_buffer, trim_pattern_noise))
     endif
-    let parse_tag_excmd = 'matchstr(split(v:val, "\\V".s:tag_delimiter)[1], ".*\\$\\ze")'
+    let parse_tag_excmd = 'printf("/^\\s*\\V%s", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "\\"))'
     let parse_tag_filename = string(expand("%:p"))
-    return [taglist, parse_tag_excmd, parse_tag_filename]
+    let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
+    return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
 endfunction
 
 
@@ -115,16 +123,18 @@ function! niffler#tselect(identifier)
     let tselect_candidates = []
     for tag in split(tselect_lines_sanitized, '\n\ze\s\{0,2\}\d')
         let file_regex = '\c\V'.identifier.'\s\*\zs\.\*'
-        let file = matchstr(split(tag, "\n")[0], file_regex)
+        let file = escape(matchstr(split(tag, "\n")[0], file_regex), ' ')
         let tag_location = matchstr(split(tag, "\n")[-1], '^\s*\zs.*')
-        let candidate = join([file, tag_location], s:tag_delimiter)
+        let candidate = join([file, tag_location], "\t")
         call add(tselect_candidates, candidate)
     endfor
     execute len(tselect_candidates) "split"
-    let parse_tag_excmd = '"/^\\s*\\V" . split(v:val, "\\V".s:tag_delimiter)[1]'
-    let parse_tag_filename = 'split(v:val, "\\V".s:tag_delimiter)[0]'
+    let parse_tag_excmd = '"/^\\s*\\V" . escape(matchstr(v:val, ''^.\{-\}\\\@<!\s\+\zs.*''), "\\")'
+    let parse_tag_filename = 'split(v:val, ''\\\@<!\s\+'')[0]'
+    let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
     let niffler_options = {"tag_search": 1, "preview": 1, "open_cmd": "edit", "split_cmd": "split",
-            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
+            \ "display_preprocessor": display_preprocessor}
     call s:niffler_setup(join(tselect_candidates, "\n"), niffler_options)
     call s:keypress_event_loop()
 endfunction
