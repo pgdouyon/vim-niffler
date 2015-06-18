@@ -56,7 +56,6 @@ Niffler has several different modes:
 | `NifflerTags`     | Fuzzy file search on ctags list                                       |
 | `NifflerTselect`  | Fuzzy file search on matching tags                                    |
 | `NifflerTjump`    | Fuzzy file search on matching tags, jump directly if only one match   |
-| `NifflerGlobal`   | Fuzzy file search on GNU global file list                             |
 
 The `Niffler` command takes any number of optional arguments and has the following structure:
 

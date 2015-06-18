@@ -42,7 +42,6 @@ highlight default link NifflerCursorLine Error
 " ======================================================================
 
 command! -nargs=* -complete=dir Niffler call niffler#niffler(<q-args>)
-command! -nargs=* -complete=dir NifflerGlobal call niffler#global(<q-args>)
 command! -nargs=0 NifflerMRU call niffler#mru()
 command! -nargs=0 NifflerBuffer call niffler#buffer()
 command! -nargs=? NifflerTags call niffler#tags(<q-args> ==# "%")

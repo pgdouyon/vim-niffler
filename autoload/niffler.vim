@@ -151,34 +151,6 @@ function! niffler#tjump(identifier)
 endfunction
 
 
-function! niffler#global(args)
-    if !executable("global")
-        echoerr "Niffler: `global` command not found. Unable to build list of files."
-        return
-    endif
-    let dir = matchstr(a:args, '\%(-\S\+\s*\)*\zs.*$')
-    let opts = matchstr(a:args, '\%(-\S\+\s*\)\+')
-
-    let save_wd = getcwd()
-    let global_root = s:get_global_root()
-    call s:change_working_directory((!empty(dir) ? dir : global_root), 0)
-
-    let candidate_string = system("global -P '.*'")
-    let niffler_options = {"save_wd": save_wd, "open_cmd": "edit",
-            \ "split_cmd": "split", "display_preprocessor": function("s:sort_by_mru")}
-    call s:niffler_setup(candidate_string, niffler_options)
-    call s:keypress_event_loop()
-endfunction
-
-
-function! s:get_global_root()
-    lchdir! %:h
-    let global_root = system("global -p")
-    lchdir! -
-    return global_root
-endfunction
-
-
 function! s:change_working_directory(default_dir, vcs_root)
     let dir = a:default_dir
     if a:vcs_root
