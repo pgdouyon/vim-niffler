@@ -503,18 +503,18 @@ function! s:sanitize_query(query)
     let fuzzy_char = escape(g:niffler_fuzzy_char, '\')
     let special_chars = substitute('.*[]\', '\V'.fuzzy_char, '', '')
     let sanitized_query = escape(query, special_chars)
-    let sanitized_query = substitute(sanitized_query, '\V'.g:niffler_fuzzy_char, '.*', 'g')
+    let sanitized_query = substitute(sanitized_query, '\V'.fuzzy_char, '.*', 'g')
     return sanitized_query
 endfunction
 
 
 function! s:translate_query_to_grep_cmd(query)
-    let grep_cmd = "grep"
-    let grep_cmd_restricted = "grep -m ".b:niffler_candidate_limit
     let search_terms = split(a:query)
-    let translator = 'printf("%s %s -e %s", grep_cmd, (v:val =~# "\\u") ? "" : "-i", shellescape(v:val))'
+    let translator = 'printf("grep %s -e %s", (v:val =~# "\\u") ? "" : "-i", shellescape(v:val))'
     let grep_filter_cmd = join(map(search_terms, translator), " | ")
-    let grep_filter_cmd_restricted = substitute(grep_filter_cmd, 'grep\ze [^|]*$', grep_cmd_restricted, '')
+    let last_grep_regex = 'grep\ze [^|]*$'
+    let grep_cmd_restricted = printf("grep -m %s", b:niffler_candidate_limit)
+    let grep_filter_cmd_restricted = substitute(grep_filter_cmd, last_grep_regex, grep_cmd_restricted, '')
     return grep_filter_cmd_restricted
 endfunction
 
