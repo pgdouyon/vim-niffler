@@ -227,11 +227,14 @@ endfunction
 
 
 function! s:set_niffler_options()
+    let enabled_boolean_options = filter(["fen", "wrap", "spell", "cuc", "nu", "rnu"], 'eval("&".v:val)')
+    let restore_options = "setlocal foldcolumn=%d colorcolumn=%s %s"
+    let b:niffler_restore_options = printf(restore_options, &foldcolumn, &colorcolumn, join(enabled_boolean_options))
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
     silent! setlocal foldcolumn=0
-    silent! setlocal colorcolumn=0
+    silent! setlocal colorcolumn=""
     silent! setlocal buflisted noswapfile nospell nofoldenable noreadonly nowrap
     silent! setlocal nocursorcolumn nonumber norelativenumber
 endfunction
@@ -406,6 +409,7 @@ function! s:close_niffler(...)
     let niffler_buffer = bufnr("%")
     call matchdelete(b:niffler_highlight_group)
     call setmatches(b:niffler_save_matches)
+    execute b:niffler_restore_options
     execute "keepalt keepjumps buffer" b:niffler_origin_buffer
     execute "silent! bwipeout!" niffler_buffer
     execute "lchdir!" save_wd
