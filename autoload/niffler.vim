@@ -25,10 +25,6 @@ let s:mru_list = readfile(s:mru_cache_file)
 " Plugin Code
 " ======================================================================
 function! niffler#niffler(args)
-    if !executable("find")
-        echoerr "Niffler: `find` command not installed. Unable to build list of files."
-        return
-    endif
     let dir = matchstr(a:args, '\%(-\S\+\s*\)*\zs.*$')
     let opts = matchstr(a:args, '\%(-\S\+\s*\)\+')
     let vcs = (opts =~# "-vcs")
@@ -64,6 +60,9 @@ endfunction
 
 
 function! niffler#tags(use_current_buffer)
+    if !executable("sed") || !executable("cut")
+        throw "[NifflerTags] - `sed` or `cut` executable not found on PATH."
+    endif
     if a:use_current_buffer
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist_current_buffer()
     else
@@ -99,7 +98,7 @@ endfunction
 
 function! s:taglist_current_buffer()
     if !executable("ctags")
-        throw "[Niffler] - Error: ctags executable not found.\nctags is required to run :NifflerTags %"
+        throw "[NifflerTags] - `ctags` executable not found."
     else
         let current_buffer = expand("%:p")
         let trim_pattern_noise = escape("s:/^[ \t]*(.*)[ \t]*$/;\":\\1:", '^$()')
@@ -114,6 +113,9 @@ endfunction
 
 
 function! niffler#tselect(identifier)
+    if !executable("sed") || !executable("cut")
+        throw "[NifflerTselect] - `sed` or `cut` executable not found on PATH."
+    endif
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
     redir => tselect_out
     execute "silent tselect" identifier
@@ -198,8 +200,7 @@ endfunction
 
 function! s:niffler_setup(candidate_string, options)
     if !executable("grep")
-        throw "Niffler: `grep` command not installed.  Unable to filter candidate list."
-        return
+        throw "[Niffler] - `grep` executable not found. Unable to filter candidate list."
     endif
     call s:open_niffler_buffer()
     call s:set_niffler_options()
