@@ -236,7 +236,7 @@ function! s:set_niffler_options()
     silent! setlocal foldcolumn=0
     silent! setlocal colorcolumn=""
     silent! setlocal buflisted noswapfile nospell nofoldenable noreadonly nowrap
-    silent! setlocal nocursorcolumn nonumber norelativenumber
+    silent! setlocal nocursorcolumn nonumber norelativenumber nohlsearch
 endfunction
 
 
