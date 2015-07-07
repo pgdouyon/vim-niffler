@@ -87,8 +87,8 @@ command and filter a list of matching tags.
 | ------------------------- | ------------------------------------------|
 | `<C-K>`, `<C-P>`          | Move up one line in the candidate list    |
 | `<C-J>`, `<C-N>`          | Move down one line in the candidate list  |
-| `<C-A>`                   | Scroll to the beginning of the line       |
-| `<C-E>`                   | Scroll to the end of the line             |
+| `<C-A>`                   | Scroll towards the beginning of the line  |
+| `<C-E>`                   | Scroll towards the end of the line        |
 | `<C-R>`                   | Insert the contents of a register         |
 | `<CR>`                    | Open selection in current window          |
 | `<C-S>`                   | Open selection in new horizontal split    |
