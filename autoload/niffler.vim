@@ -68,11 +68,13 @@ function! niffler#tags(use_current_buffer)
     else
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist()
     endif
-    let niffler_options = {"tag_search": 1, "open_cmd": "edit", "split_cmd": "split",
+    let [open_cmd, split_cmd] = s:get_tag_open_cmds()
+    let niffler_options = {"tag_search": 1, "open_cmd": open_cmd, "split_cmd": split_cmd,
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
             \ "display_preprocessor": display_preprocessor}
     call s:niffler_setup(taglist, niffler_options)
     call s:keypress_event_loop()
+    call s:delete_tag_open_cmds()
 endfunction
 
 
@@ -134,11 +136,13 @@ function! niffler#tselect(identifier)
     let parse_tag_excmd = '"/^\\s*\\V" . escape(matchstr(v:val, ''^.\{-\}\\\@<!\s\+\zs.*''), "\\")'
     let parse_tag_filename = 'substitute(split(v:val, ''\\\@<!\s\+'')[0], "\\\\ ", " ", "g")'
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
-    let niffler_options = {"tag_search": 1, "preview": 1, "open_cmd": "edit", "split_cmd": "split",
+    let [open_cmd, split_cmd] = s:get_tag_open_cmds()
+    let niffler_options = {"tag_search": 1, "preview": 1, "open_cmd": open_cmd, "split_cmd": split_cmd,
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
             \ "display_preprocessor": display_preprocessor}
     call s:niffler_setup(join(tselect_candidates, "\n"), niffler_options)
     call s:keypress_event_loop()
+    call s:delete_tag_open_cmds()
 endfunction
 
 
@@ -150,6 +154,17 @@ function! niffler#tjump(identifier)
     else
         call niffler#tselect(identifier)
     endif
+endfunction
+
+
+function! s:get_tag_open_cmds()
+    command! -nargs=+ -bar NifflerTagOpenCmd try | buffer <args> | catch | edit <args> | endtry
+    return ["NifflerTagOpenCmd", "split | NifflerTagOpenCmd"]
+endfunction
+
+
+function! s:delete_tag_open_cmds()
+    silent! delcommand NifflerTagOpenCmd
 endfunction
 
 
@@ -393,10 +408,9 @@ function! s:open_tag(prompt, open_cmd)
     let selection = substitute(getline("."), '\s*$', '', '')
     let tag_excmd = map([selection], b:niffler_parse_tag_excmd)[0]
     let tag_filename = map([selection], b:niffler_parse_tag_filename)[0]
-    let open_cmd = bufexists(tag_filename) ? "buffer" : a:open_cmd
     call s:close_niffler()
     normal! m'
-    execute "silent" open_cmd fnameescape(tag_filename) "|silent keeppatterns" tag_excmd
+    execute "silent" a:open_cmd fnameescape(tag_filename) "|silent keeppatterns" tag_excmd
 endfunction
 
 
