@@ -396,7 +396,7 @@ function! s:open_tag(prompt, open_cmd)
     let open_cmd = bufexists(tag_filename) ? "buffer" : a:open_cmd
     call s:close_niffler()
     normal! m'
-    execute "silent keepjumps keeppatterns" open_cmd "+".escape(tag_excmd, ' \') fnameescape(tag_filename)
+    execute "silent" open_cmd fnameescape(tag_filename) "|silent keeppatterns" tag_excmd
 endfunction
 
 
