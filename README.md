@@ -110,7 +110,7 @@ command and filter a list of matching tags.
     - Helpful for large directories that could slow Niffler down
     - Ignored when `g:niffler_user_command` is non-empty
 - `g:niffler_mru_max_history`
-    - Size of the MRU cache (default 50)
+    - Size of the MRU cache (default 100)
 
 
 Requirements
