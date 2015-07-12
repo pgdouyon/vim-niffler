@@ -1,0 +1,176 @@
+*niffler.txt*     Fuzzy finder for Vim                               *niffler*
+
+==============================================================================
+Contents                                                    *niffler-contents*
+
+    1. Intro............................................|niffler-intro|
+    2. Options..........................................|niffler-options|
+    3. Commands.........................................|niffler-commands|
+    4. Mappings.........................................|niffler-mappings|
+
+==============================================================================
+Intro                                                          *niffler-intro*
+
+Niffler is a lightweight, lightning-fast, fuzzy finder for Vim with built-in
+support for file, MRU, buffer, and tag searching.  Niffler is heavily inspired
+by FZF and Drew Neil's famous "Oil and Vinegar" blog post.
+
+Niffler differs from other fuzzy file finders in that it doesn't perform a
+fuzzy search by default.  Instead it searches for an exact match of the text
+typed, but provides two separate facilities for adding some fuzziness to the
+search.
+
+
+Fuzzy Character~
+At any point in the search query you can insert a fuzzy character (specified
+by |g:niffler_fuzzy_char|) to match any string of characters in the query
+string.  This is similar to the ".*" pattern in most regular expression
+engines or the "*" globbing character used for filename expansion in most
+shells. >
+    izzbu will match fizzbuzz but NOT fizzbazbuzz
+    izz*bu will match fizzbuzz AND fizzbazbuzz
+<
+
+Conjunctive Search~
+Niffler supports conjunctive searches by separating two or more search terms
+with a space.  Niffler will then only return candidates which match all
+space-separated search terms. >
+    izzbu will match fizzbuzz but NOT fizzbazbuzz
+    izz bu will match fizzbuzz AND fizzbazbuzz
+<
+
+Anchoring~
+The beginning and end of the query are fuzzy by default, but you can anchor
+either the beginning or end of the query using "^" or "$" respectively. >
+    ^fizz will match fizzbazbuzz but not buzzfizzbaz
+    buzz$ will match fizzbazbuzz but not bazbuzzfizz
+<
+
+Commands~
+Specify a command to be run on the open file by appending ":<CMD>" to the end
+of the search query. >
+    iz*buz:45 will open a file fizzbazbuzz and jump to line 45
+    iz*buz:diffthis will open a file fizzbazbuzz and add the file to the diff windows
+<
+
+
+==============================================================================
+Options                                                      *niffler-options*
+
+g:niffler_user_command                                *g:niffler_user_command*
+                        Custom printf-style command to use in place of the
+                        default find command to create a list of files to pass
+                        to Niffler. Use %s in place of the target directory to
+                        search from. >
+                            let g:niffler_user_command = 'ag %s -g ""'
+<
+g:niffler_ignore_extensions                      *g:niffler_ignore_extensions*
+                        List of file extensions to exclude from Niffler
+                        results. >
+                            let g:niffler_ignore_extensions = [".class", ".o"]
+<
+                        Note: This option is ignored when
+                        |g:niffler_user_command| is set
+
+g:niffler_ignore_dirs                                  *g:niffler_ignore_dirs*
+                        List of directories to exclude from Niffler results. >
+                            let g:niffler_ignore_dirs = ["Library", "target"]
+<
+                        Note: This option is ignored when
+                        |g:niffler_user_command| is set
+
+g:niffler_fuzzy_char                                    *g:niffler_fuzzy_char*
+                        Fuzzy character used to match any string of characters
+                        in the query string. >
+                            let g:niffler_fuzzy_char = ";"
+<
+                        The default value is "*"
+
+g:niffler_mru_max_history                          *g:niffler_mru_max_history*
+                        Maximum number of files to keep in the MRU cache. >
+                            let g:niffler_mru_max_history = 200
+<
+                        The default value is 100
+
+g:niffler_mru_ignore_buftypes                  *g:niffler_mru_ignore_buftypes*
+                        List of buftypes to exclude from MRU results.  Niffler
+                        ignores most sensible buftypes by default, this option
+                        is a fallback if any other buftypes arise that Niffler
+                        doesn't know about. >
+                            let g:niffler_mru_ignore_buftypes = ["nowrite"]
+<
+                        The default value is []
+
+g:niffler_mru_ignore_filetypes                *g:niffler_mru_ignore_filetypes*
+                        List of filetypes to exclude from MRU results. >
+                            let g:niffler_mru_ignore_filetypes = ["netrw"]
+<
+                        The default value is []
+
+
+==============================================================================
+Commands                                                    *niffler-commands*
+
+:Niffler [-vcs] [directory]                                         *:Niffler*
+                        Perform fuzzy file search.
+
+                        If the -vcs argument is given, find all files under
+                        the project VCS root directory (currently only
+                        supports Git).  Else find all files under the given
+                        directory.
+
+                        If no argument is given find all files under the $HOME
+                        directory.
+
+:NifflerMRU                                                      *:NifflerMRU*
+                        Perform fuzzy file search on MRU cache.
+
+:NifflerBuffer                                                *:NifflerBuffer*
+                        Perform fuzzy file search on buffer list.
+
+:NifflerTags [%]                                                *:NifflerTags*
+                        Perform fuzzy tag search on all tags found in
+                        |tagfiles()|.
+
+                        Pass a % to the command to only search for tags in the
+                        current buffer.
+
+:NifflerTselect [identifier]                                 *:NifflerTselect*
+                        Perform fuzzy tag search on all tags that match
+                        [ident].  If no argument is given use the current word
+                        under the cursor.
+
+                        Can be used to replace the builtin |:tselect| command. >
+                            nnoremap <silent> g] :NifflerTselect<CR>
+<
+
+:NifflerTjump [identifier]                                     *:NifflerTjump*
+                        Like |:NifflerTselect|, but jump to the tag directly
+                        when there is only one match.
+
+                        Can be used to replace the builtin |:tjump| command. >
+                            nnoremap <silent> g<C-]> :NifflerTjump<CR>
+<
+
+
+==============================================================================
+Mappings                                                    *niffler-mappings*
+
+The following key mappings are supported in any of the Niffler buffers.
+
+ Key                       | Action
+ ------------------------- | ------------------------------------------
+ <C-K>, <C-P>              | Move up one line in the candidate list
+ <C-J>, <C-N>              | Move down one line in the candidate list
+ <C-A>                     | Scroll towards the beginning of the line
+ <C-E>                     | Scroll towards the end of the line
+ <C-R>                     | Insert the contents of a register
+ <CR>                      | Open selection in current window
+ <C-S>                     | Open selection in new horizontal split
+ <C-V>                     | Open selection in new vertical split
+ <C-T>                     | Open selection in new tab window
+ <Esc>, <C-[>, <C-C>       | Quit Niffler
+
+
+==============================================================================
+vim:tw=80:ts=8:ft=help:norl:
