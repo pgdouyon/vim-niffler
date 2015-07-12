@@ -60,8 +60,10 @@ endfunction
 
 
 function! niffler#tags(use_current_buffer)
-    if !executable("sed") || !executable("cut")
-        throw "[NifflerTags] - `sed` or `cut` executable not found on PATH."
+    if !executable("ctags") || !executable("sed") || !executable("cut")
+        let error_message = "[NifflerTags] - one of the following required executables not found: [ctags, sed, cut]."
+        call s:echo_error(error_message)
+        return
     endif
     if a:use_current_buffer
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist_current_buffer()
@@ -99,14 +101,10 @@ endfunction
 
 
 function! s:taglist_current_buffer()
-    if !executable("ctags")
-        throw "[NifflerTags] - `ctags` executable not found."
-    else
-        let current_buffer = expand("%:p")
-        let trim_pattern_noise = escape("s:/^[ \t]*(.*)[ \t]*$/;\":\\1:", '^$()')
-        let taglist_cmd = "ctags -f - %s | sed -e '%s' | cut -f1,3"
-        let taglist = system(printf(taglist_cmd, current_buffer, trim_pattern_noise))
-    endif
+    let current_buffer = expand("%:p")
+    let trim_pattern_noise = escape("s:/^[ \t]*(.*)[ \t]*$/;\":\\1:", '^$()')
+    let taglist_cmd = "ctags -f - %s | sed -e '%s' | cut -f1,3"
+    let taglist = system(printf(taglist_cmd, current_buffer, trim_pattern_noise))
     let parse_tag_excmd = 'printf("/^\\s*\\V%s", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "\\"))'
     let parse_tag_filename = string(expand("%:p"))
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
@@ -116,7 +114,9 @@ endfunction
 
 function! niffler#tselect(identifier)
     if !executable("sed") || !executable("cut")
-        throw "[NifflerTselect] - `sed` or `cut` executable not found on PATH."
+        let error_message = "[NifflerTselect] - one of the following required executables not found: [sed, cut]."
+        call s:echo_error(error_message)
+        return
     endif
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
     redir => tselect_out
@@ -215,7 +215,13 @@ endfunction
 
 function! s:niffler_setup(candidate_string, options)
     if !executable("grep")
-        throw "[Niffler] - `grep` executable not found. Unable to filter candidate list."
+        let error_message = "[Niffler] - `grep` executable not found. Unable to filter candidate list."
+        call s:echo_error(error_message)
+        return
+    elseif empty(a:candidate_string)
+        let error_message = "[Niffler] - No results found. Unable to create candidate list."
+        call s:echo_error(error_message)
+        return
     endif
     call s:open_niffler_buffer()
     call s:set_niffler_options()
@@ -238,6 +244,7 @@ function! s:open_niffler_buffer()
     keepalt keepjumps edit __Niffler__
     let b:niffler_origin_buffer = origin_buffer
     let b:niffler_save_cursor = save_cursor
+    normal! gg
 endfunction
 
 
@@ -262,11 +269,15 @@ function! s:set_niffler_cursorline()
 endfunction
 
 
+function! s:echo_error(error_message)
+    echohl ErrorMsg | echomsg a:error_message | echohl None
+endfunction
+
+
 function! s:keypress_event_loop()
-    normal! gg
     let prompt = ""
-    call s:redraw_prompt(prompt)
     while exists("b:niffler_isactive")
+        call s:redraw_prompt(prompt)
         let nr = getchar()
         let char = !type(nr) ? nr2char(nr) : nr
         if (char =~# '\p') && (type(nr) == 0)
@@ -283,7 +294,6 @@ function! s:update_prompt(prompt, char)
     let prompt = a:prompt . a:char
     let query = s:parse_query(prompt)
     call s:filter_candidate_list(query)
-    call s:redraw_prompt(prompt)
     return prompt
 endfunction
 
@@ -293,7 +303,6 @@ function! s:backspace(prompt)
     let query = s:parse_query(prompt)
     let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(query)
-    call s:redraw_prompt(prompt)
     return prompt
 endfunction
 
@@ -303,7 +312,6 @@ function! s:backward_kill_word(prompt)
     let query = s:parse_query(prompt)
     let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(query)
-    call s:redraw_prompt(prompt)
     return prompt
 endfunction
 
@@ -312,7 +320,6 @@ function! s:backward_kill_line(prompt)
     let empty_prompt = ""
     let b:niffler_candidates = b:niffler_candidates_original
     call s:filter_candidate_list(empty_prompt)
-    call s:redraw_prompt(empty_prompt)
     return empty_prompt
 endfunction
 
@@ -323,7 +330,6 @@ function! s:move_next_line(prompt)
     call cursor(next_line, col("."))
     call matchdelete(b:niffler_highlight_group)
     let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
-    call s:redraw_prompt(a:prompt)
     return a:prompt
 endfunction
 
@@ -334,21 +340,18 @@ function! s:move_prev_line(prompt)
     call cursor(prev_line, col("."))
     call matchdelete(b:niffler_highlight_group)
     let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
-    call s:redraw_prompt(a:prompt)
     return a:prompt
 endfunction
 
 
 function! s:scroll_left(prompt)
     normal! zH
-    call s:redraw_prompt(a:prompt)
     return a:prompt
 endfunction
 
 
 function! s:scroll_right(prompt)
     normal! zL
-    call s:redraw_prompt(a:prompt)
     return a:prompt
 endfunction
 
@@ -440,7 +443,6 @@ function! s:paste_from_register(prompt)
         let prompt = a:prompt . paste_text
         let query = s:parse_query(prompt)
         call s:filter_candidate_list(query)
-        call s:redraw_prompt(prompt)
         return prompt
     else
         return a:prompt
