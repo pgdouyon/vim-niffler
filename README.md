@@ -53,9 +53,9 @@ Niffler has several different modes:
 | `Niffler`         | Fuzzy file search                                                     |
 | `NifflerMRU`      | Fuzzy file search on MRU cache                                        |
 | `NifflerBuffer`   | Fuzzy file search on buffer list                                      |
-| `NifflerTags`     | Fuzzy file search on ctags list                                       |
-| `NifflerTselect`  | Fuzzy file search on matching tags                                    |
-| `NifflerTjump`    | Fuzzy file search on matching tags, jump directly if only one match   |
+| `NifflerTags`     | Fuzzy tag search on ctags list                                       |
+| `NifflerTselect`  | Fuzzy tag search on matching tags                                    |
+| `NifflerTjump`    | Fuzzy tag search on matching tags, jump directly if only one match   |
 
 The `Niffler` command takes any number of optional arguments and has the following structure:
 
