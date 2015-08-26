@@ -174,7 +174,13 @@ function! s:change_working_directory(default_dir, vcs_root)
         let vcs = finddir(".git", expand("%:p:h").";")
         let dir = fnamemodify(vcs, ":h")
     endif
-    execute "lchdir! ".dir
+    call s:lchdir(dir)
+endfunction
+
+
+function! s:lchdir(directory)
+    let cd = haslocaldir() ? "lchdir!" : "chdir!"
+    execute cd a:directory
 endfunction
 
 
@@ -428,7 +434,7 @@ function! s:close_niffler(...)
     execute b:niffler_restore_options
     execute "keepalt keepjumps buffer" b:niffler_origin_buffer
     execute "silent! bwipeout!" niffler_buffer
-    execute "lchdir!" save_wd
+    call s:lchdir(save_wd)
     if preview | wincmd c | endif
     call setpos(".", save_cursor)
     redraw | echo
