@@ -196,7 +196,7 @@ preview              | boolean | Set to 1 to open Niffler in a small split
 
 
 Additionally, the dictionary passed to |niffler#custom()| can be accessed from
-the sink function if is defined as a |Dictionary-function|.  This enables
+the sink function if it is defined as a |Dictionary-function|.  This enables
 passing of any needed options/state variables to the sink function which can
 be subsequently accessed through the |self| variable. >
             call niffler#custom({'source': ["hello", "world"],
