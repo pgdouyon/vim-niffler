@@ -33,15 +33,15 @@ function! niffler#niffler(args)
     call s:change_working_directory((!empty(dir) ? dir : expand("$HOME")), vcs)
 
     let candidate_string = s:find_files()
-    let niffler_options = {"save_wd": save_wd, "open_cmd": "edit",
-            \ "split_cmd": "split", "display_preprocessor": function("s:sort_by_mru")}
+    let niffler_options = {"save_wd": save_wd, "sink": function("s:open_file"),
+            \ "display_preprocessor": function("s:sort_by_mru")}
     call s:niffler_setup(candidate_string, niffler_options)
     call s:keypress_event_loop()
 endfunction
 
 
 function! niffler#mru()
-    let niffler_options = {"open_cmd": "edit", "split_cmd": "split"}
+    let niffler_options = {"sink": function("s:open_file")}
     call s:prune_mru_list()
     call s:niffler_setup(join(reverse(copy(s:mru_list)), "\n"), niffler_options)
     call s:keypress_event_loop()
@@ -52,8 +52,7 @@ function! niffler#buffer()
     redir => buffers | silent ls | redir END
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
     let buflist_string = join(buflist, "\n")
-    let niffler_options = {"open_cmd": "buffer", "split_cmd": "sbuffer",
-            \ "display_preprocessor": function("s:sort_by_mru")}
+    let niffler_options = {"sink": function("s:open_file"), "display_preprocessor": function("s:sort_by_mru")}
     call s:niffler_setup(buflist_string, niffler_options)
     call s:keypress_event_loop()
 endfunction
@@ -70,13 +69,10 @@ function! niffler#tags(use_current_buffer)
     else
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist()
     endif
-    let [open_cmd, split_cmd] = s:get_tag_open_cmds()
-    let niffler_options = {"tag_search": 1, "open_cmd": open_cmd, "split_cmd": split_cmd,
-            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
-            \ "display_preprocessor": display_preprocessor}
+    let niffler_options = {"sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
     call s:niffler_setup(taglist, niffler_options)
     call s:keypress_event_loop()
-    call s:delete_tag_open_cmds()
 endfunction
 
 
@@ -136,13 +132,10 @@ function! niffler#tselect(identifier)
     let parse_tag_excmd = '"/^\\s*\\V" . escape(matchstr(v:val, ''^.\{-\}\\\@<!\s\+\zs.*''), "\\")'
     let parse_tag_filename = 'substitute(split(v:val, ''\\\@<!\s\+'')[0], "\\\\ ", " ", "g")'
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
-    let [open_cmd, split_cmd] = s:get_tag_open_cmds()
-    let niffler_options = {"tag_search": 1, "preview": 1, "open_cmd": open_cmd, "split_cmd": split_cmd,
-            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
-            \ "display_preprocessor": display_preprocessor}
+    let niffler_options = {"preview": 1, "sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
     call s:niffler_setup(join(tselect_candidates, "\n"), niffler_options)
     call s:keypress_event_loop()
-    call s:delete_tag_open_cmds()
 endfunction
 
 
@@ -157,14 +150,23 @@ function! niffler#tjump(identifier)
 endfunction
 
 
-function! s:get_tag_open_cmds()
-    command! -nargs=+ -bar NifflerTagOpenCmd try | buffer <args> | catch | edit <args> | endtry
-    return ["NifflerTagOpenCmd", "split | NifflerTagOpenCmd"]
+function! s:open_file(selection) dict
+    let save_wd = getcwd()
+    call s:lchdir(self.working_directory)
+    let selection = fnamemodify(a:selection, ":p")
+    let open_cmd = bufexists(selection) ? "buffer" : "edit"
+    execute open_cmd fnameescape(selection)
+    call s:lchdir(save_wd)
 endfunction
 
 
-function! s:delete_tag_open_cmds()
-    silent! delcommand NifflerTagOpenCmd
+function! s:open_tag(selection) dict
+    let tag_excmd = map([a:selection], self.parse_tag_excmd)[0]
+    let tag_filename = map([a:selection], self.parse_tag_filename)[0]
+    let open_cmd = bufexists(tag_filename) ? "buffer" : "edit"
+    mark '
+    execute "silent" open_cmd fnameescape(tag_filename)
+    execute "silent keeppatterns" tag_excmd
 endfunction
 
 
@@ -237,6 +239,7 @@ function! s:niffler_setup(candidate_string, options)
     let b:niffler.candidates_original = a:candidate_string
     let b:niffler.candidates = a:candidate_string
     let b:niffler.candidate_limit = winheight(0)
+    let b:niffler.working_directory = getcwd()
     let b:niffler.isactive = 1
     call s:display(split(a:candidate_string, "\n")[0:b:niffler.candidate_limit - 1])
 endfunction
@@ -368,57 +371,42 @@ endfunction
 
 
 function! s:open_current_window(prompt)
-    call s:open_selection(a:prompt, b:niffler.open_cmd)
+    call s:open_selection(a:prompt, "")
     return ""
 endfunction
 
 
 function! s:open_split_window(prompt)
-    call s:open_selection(a:prompt, b:niffler.split_cmd)
+    call s:open_selection(a:prompt, "split")
     return ""
 endfunction
 
 
 function! s:open_vert_split(prompt)
-    let vert_cmd = "vertical " . b:niffler.split_cmd
-    call s:open_selection(a:prompt, vert_cmd)
+    call s:open_selection(a:prompt, "vertical split")
     return ""
 endfunction
 
 
 function! s:open_tab_window(prompt)
-    let tab_cmd = "tab " . b:niffler.split_cmd
-    call s:open_selection(a:prompt, tab_cmd)
+    call s:open_selection(a:prompt, "tab split")
     return ""
 endfunction
 
 
-function! s:open_selection(prompt, open_cmd)
-    if get(b:, "niffler.tag_search", 0)
-        call s:open_tag(a:prompt, a:open_cmd)
-    else
-        call s:open_file(a:prompt, a:open_cmd)
-    endif
-endfunction
-
-
-function! s:open_file(prompt, open_cmd)
-    let prompt = s:parse_query(a:prompt)
+function! s:open_selection(prompt, create_window)
+    let niffler = b:niffler
     let command = s:parse_command(a:prompt)
-    let selection = fnamemodify(substitute(getline("."), '\s*$', '', ''), ":p")
-    call s:close_niffler()
-    execute a:open_cmd fnameescape(selection)
-    execute command
-endfunction
-
-
-function! s:open_tag(prompt, open_cmd)
     let selection = substitute(getline("."), '\s*$', '', '')
-    let tag_excmd = map([selection], b:niffler.parse_tag_excmd)[0]
-    let tag_filename = map([selection], b:niffler.parse_tag_filename)[0]
     call s:close_niffler()
-    normal! m'
-    execute "silent" a:open_cmd fnameescape(tag_filename) "|silent keeppatterns" tag_excmd
+
+    execute a:create_window
+    if type(niffler.sink) == type("")
+        execute niffler.sink selection
+    else
+        call niffler.sink(selection)
+    endif
+    execute command
 endfunction
 
 
