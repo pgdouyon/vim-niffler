@@ -233,14 +233,12 @@ function! s:niffler_setup(candidate_string, options)
     call s:set_niffler_options()
     call s:set_niffler_cursorline()
     call s:prune_mru_list()
-    let b:niffler_candidates_original = a:candidate_string
-    let b:niffler_candidates = a:candidate_string
-    let b:niffler_candidate_limit = winheight(0)
-    let b:niffler_isactive = 1
-    for option_pair in items(a:options)
-        let b:niffler_{option_pair[0]} = option_pair[1]
-    endfor
-    call s:display(split(a:candidate_string, "\n")[0:b:niffler_candidate_limit - 1])
+    call extend(b:niffler, a:options)
+    let b:niffler.candidates_original = a:candidate_string
+    let b:niffler.candidates = a:candidate_string
+    let b:niffler.candidate_limit = winheight(0)
+    let b:niffler.isactive = 1
+    call s:display(split(a:candidate_string, "\n")[0:b:niffler.candidate_limit - 1])
 endfunction
 
 
@@ -248,8 +246,9 @@ function! s:open_niffler_buffer()
     let origin_buffer = bufname("%")
     let save_cursor = getpos(".")
     keepalt keepjumps edit __Niffler__
-    let b:niffler_origin_buffer = origin_buffer
-    let b:niffler_save_cursor = save_cursor
+    let b:niffler = {}
+    let b:niffler.origin_buffer = origin_buffer
+    let b:niffler.save_cursor = save_cursor
     normal! gg
 endfunction
 
@@ -257,7 +256,7 @@ endfunction
 function! s:set_niffler_options()
     let enabled_boolean_options = filter(["fen", "wrap", "spell", "cuc", "nu", "rnu", "hls"], 'eval("&".v:val)')
     let restore_options = "setlocal foldcolumn=%d colorcolumn=%s %s"
-    let b:niffler_restore_options = printf(restore_options, &foldcolumn, &colorcolumn, join(enabled_boolean_options))
+    let b:niffler.restore_options = printf(restore_options, &foldcolumn, &colorcolumn, join(enabled_boolean_options))
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
@@ -270,8 +269,8 @@ endfunction
 
 function! s:set_niffler_cursorline()
     let save_matches = filter(getmatches(), 'has_key(v:val, "pattern")')
-    let b:niffler_save_matches = save_matches | call clearmatches()
-    let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    let b:niffler.save_matches = save_matches | call clearmatches()
+    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
 endfunction
 
 
@@ -282,7 +281,7 @@ endfunction
 
 function! s:keypress_event_loop()
     let prompt = ""
-    while exists("b:niffler_isactive")
+    while exists("b:niffler.isactive")
         call s:redraw_prompt(prompt)
         let nr = getchar()
         let char = !type(nr) ? nr2char(nr) : nr
@@ -307,7 +306,7 @@ endfunction
 function! s:backspace(prompt)
     let prompt = a:prompt[0:-2]
     let query = s:parse_query(prompt)
-    let b:niffler_candidates = b:niffler_candidates_original
+    let b:niffler.candidates = b:niffler.candidates_original
     call s:filter_candidate_list(query)
     return prompt
 endfunction
@@ -316,7 +315,7 @@ endfunction
 function! s:backward_kill_word(prompt)
     let prompt = matchstr(a:prompt, '.\{-\}\ze\S\+\s*$')
     let query = s:parse_query(prompt)
-    let b:niffler_candidates = b:niffler_candidates_original
+    let b:niffler.candidates = b:niffler.candidates_original
     call s:filter_candidate_list(query)
     return prompt
 endfunction
@@ -324,7 +323,7 @@ endfunction
 
 function! s:backward_kill_line(prompt)
     let empty_prompt = ""
-    let b:niffler_candidates = b:niffler_candidates_original
+    let b:niffler.candidates = b:niffler.candidates_original
     call s:filter_candidate_list(empty_prompt)
     return empty_prompt
 endfunction
@@ -334,8 +333,8 @@ function! s:move_next_line(prompt)
     let is_last_line = (line(".") == line("$"))
     let next_line = (is_last_line ? 1 : line(".") + 1)
     call cursor(next_line, col("."))
-    call matchdelete(b:niffler_highlight_group)
-    let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    call matchdelete(b:niffler.highlight_group)
+    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
     return a:prompt
 endfunction
 
@@ -344,8 +343,8 @@ function! s:move_prev_line(prompt)
     let is_first_line = (line(".") == 1)
     let prev_line = (is_first_line ? line("$") : line(".") - 1)
     call cursor(prev_line, col("."))
-    call matchdelete(b:niffler_highlight_group)
-    let b:niffler_highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    call matchdelete(b:niffler.highlight_group)
+    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
     return a:prompt
 endfunction
 
@@ -369,33 +368,33 @@ endfunction
 
 
 function! s:open_current_window(prompt)
-    call s:open_selection(a:prompt, b:niffler_open_cmd)
+    call s:open_selection(a:prompt, b:niffler.open_cmd)
     return ""
 endfunction
 
 
 function! s:open_split_window(prompt)
-    call s:open_selection(a:prompt, b:niffler_split_cmd)
+    call s:open_selection(a:prompt, b:niffler.split_cmd)
     return ""
 endfunction
 
 
 function! s:open_vert_split(prompt)
-    let vert_cmd = "vertical " . b:niffler_split_cmd
+    let vert_cmd = "vertical " . b:niffler.split_cmd
     call s:open_selection(a:prompt, vert_cmd)
     return ""
 endfunction
 
 
 function! s:open_tab_window(prompt)
-    let tab_cmd = "tab " . b:niffler_split_cmd
+    let tab_cmd = "tab " . b:niffler.split_cmd
     call s:open_selection(a:prompt, tab_cmd)
     return ""
 endfunction
 
 
 function! s:open_selection(prompt, open_cmd)
-    if get(b:, "niffler_tag_search", 0)
+    if get(b:, "niffler.tag_search", 0)
         call s:open_tag(a:prompt, a:open_cmd)
     else
         call s:open_file(a:prompt, a:open_cmd)
@@ -415,8 +414,8 @@ endfunction
 
 function! s:open_tag(prompt, open_cmd)
     let selection = substitute(getline("."), '\s*$', '', '')
-    let tag_excmd = map([selection], b:niffler_parse_tag_excmd)[0]
-    let tag_filename = map([selection], b:niffler_parse_tag_filename)[0]
+    let tag_excmd = map([selection], b:niffler.parse_tag_excmd)[0]
+    let tag_filename = map([selection], b:niffler.parse_tag_filename)[0]
     call s:close_niffler()
     normal! m'
     execute "silent" a:open_cmd fnameescape(tag_filename) "|silent keeppatterns" tag_excmd
@@ -424,15 +423,15 @@ endfunction
 
 
 function! s:close_niffler(...)
-    unlet b:niffler_isactive
-    let save_wd = get(b:, "niffler_save_wd", getcwd())
-    let preview = get(b:, "niffler_preview", 0)
-    let save_cursor = b:niffler_save_cursor
+    unlet b:niffler.isactive
+    let save_wd = get(b:niffler, "save_wd", getcwd())
+    let preview = get(b:niffler, "preview", 0)
+    let save_cursor = b:niffler.save_cursor
     let niffler_buffer = bufnr("%")
-    call matchdelete(b:niffler_highlight_group)
-    call setmatches(b:niffler_save_matches)
-    execute b:niffler_restore_options
-    execute "keepalt keepjumps buffer" b:niffler_origin_buffer
+    call matchdelete(b:niffler.highlight_group)
+    call setmatches(b:niffler.save_matches)
+    execute b:niffler.restore_options
+    execute "keepalt keepjumps buffer" b:niffler.origin_buffer
     execute "silent! bwipeout!" niffler_buffer
     call s:lchdir(save_wd)
     if preview | wincmd c | endif
@@ -482,15 +481,15 @@ let s:function_map = {
 " ======================================================================
 
 function! s:filter_candidate_list(query)
-    if empty(b:niffler_candidates)
+    if empty(b:niffler.candidates)
         return
     endif
     let sanitized_query = s:sanitize_query(a:query)
     let grep_cmd = s:translate_query_to_grep_cmd(sanitized_query)
-    let candidates = system(grep_cmd, b:niffler_candidates)
+    let candidates = system(grep_cmd, b:niffler.candidates)
     let candidate_list = split(candidates, "\n")
-    if len(candidate_list) < b:niffler_candidate_limit
-        let b:niffler_candidates = candidates
+    if len(candidate_list) < b:niffler.candidate_limit
+        let b:niffler.candidates = candidates
     endif
     call s:display(candidate_list)
 endfunction
@@ -511,7 +510,7 @@ function! s:translate_query_to_grep_cmd(query)
     let translator = 'printf("grep %s -e %s", (v:val =~# "\\u") ? "" : "-i", shellescape(v:val))'
     let grep_filter_cmd = join(map(search_terms, translator), " | ")
     let last_grep_regex = 'grep\ze [^|]*$'
-    let grep_cmd_restricted = printf("grep -m %s", b:niffler_candidate_limit)
+    let grep_cmd_restricted = printf("grep -m %s", b:niffler.candidate_limit)
     let grep_filter_cmd_restricted = substitute(grep_filter_cmd, last_grep_regex, grep_cmd_restricted, '')
     return grep_filter_cmd_restricted
 endfunction
@@ -528,11 +527,11 @@ endfunction
 
 function! s:preprocess_candidate_list(candidate_list)
     let candidate_list = a:candidate_list
-    if exists("b:niffler_display_preprocessor")
-        if type(b:niffler_display_preprocessor) == type("")
-            let candidate_list = eval(substitute(b:niffler_display_preprocessor, '\<v:val\>', 'a:candidate_list', 'g'))
+    if exists("b:niffler.display_preprocessor")
+        if type(b:niffler.display_preprocessor) == type("")
+            let candidate_list = eval(substitute(b:niffler.display_preprocessor, '\<v:val\>', 'a:candidate_list', 'g'))
         else
-            let candidate_list = b:niffler_display_preprocessor(a:candidate_list)
+            let candidate_list = b:niffler.display_preprocessor(a:candidate_list)
         endif
     endif
     return candidate_list
