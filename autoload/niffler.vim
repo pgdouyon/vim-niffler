@@ -281,7 +281,7 @@ endfunction
 
 
 function! s:set_niffler_options()
-    let enabled_boolean_options = filter(["fen", "wrap", "spell", "cuc", "nu", "rnu", "hls"], 'eval("&".v:val)')
+    let enabled_boolean_options = filter(["fen", "wrap", "spell", "cuc", "nu", "rnu", "hls", "list"], 'eval("&".v:val)')
     let restore_options = "setlocal foldcolumn=%d colorcolumn=%s %s"
     let b:niffler.restore_options = printf(restore_options, &foldcolumn, &colorcolumn, join(enabled_boolean_options))
     set filetype=niffler
