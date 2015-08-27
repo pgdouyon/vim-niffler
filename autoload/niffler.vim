@@ -170,6 +170,30 @@ function! s:open_tag(selection) dict
 endfunction
 
 
+function! niffler#custom(args)
+    if !has_key(a:args, "source")
+        let error_message = "[NifflerCustom] - 'source' key not found.  Unable to create candidate list."
+        call s:echo_error(error_message)
+        return
+    endif
+    let save_wd = getcwd()
+    let dir = get(a:args, "dir", "$HOME")
+    let vcs = get(a:args, "vcs", 0)
+    call s:change_working_directory(dir, vcs)
+
+    if type(a:args.source) == type("")
+        let candidates = system(a:args.source)
+    elseif type(a:args.source) == type([])
+        let candidates = join(a:args.source, "\n")
+    else
+        let candidates = join(a:args.source(), "\n")
+    endif
+    let niffler_options = extend(a:args, {"save_wd": save_wd})
+    call s:niffler_setup(candidates, niffler_options)
+    call s:keypress_event_loop()
+endfunction
+
+
 function! s:change_working_directory(default_dir, vcs_root)
     let dir = a:default_dir
     if a:vcs_root

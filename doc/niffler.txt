@@ -7,6 +7,7 @@ Contents                                                    *niffler-contents*
     2. Options..........................................|niffler-options|
     3. Commands.........................................|niffler-commands|
     4. Mappings.........................................|niffler-mappings|
+    5. Custom Lists.....................................|niffler-custom|
 
 ==============================================================================
 Intro                                                          *niffler-intro*
@@ -108,6 +109,7 @@ g:niffler_mru_ignore_filetypes                *g:niffler_mru_ignore_filetypes*
                         The default value is []
 
 
+
 ==============================================================================
 Commands                                                    *niffler-commands*
 
@@ -171,6 +173,42 @@ The following key mappings are supported in any of the Niffler buffers.
  <C-T>                     | Open selection in new tab window
  <Esc>, <C-[>, <C-C>       | Quit Niffler
 
+
+
+==============================================================================
+Custom Lists                                                  *niffler-custom*
+
+For more advanced uses you can use the *niffler#custom()* function to create
+your own lists of candidates to filter.  The |niffler#custom()| function takes
+a single dictionary with the following options:
+
+Option Name          | Type    | Description
+-------------------- | ------- | --------------------------------------------
+source               | String  | External command passed to |system()|
+source               | List    | List of candidate strings
+source               | Funcref | Zero-arg function returns list of strings
+sink                 | String  | Vim command taking the candidate as argument
+sink                 | Funcref | Function taking the candidate String as input
+display_preprocessor | Funcref | Change how 'source' candidates are displayed
+dir                  | String  | Working directory, default is $HOME
+vcs                  | boolean | Set to 1 to use VCS root as working directory
+preview              | boolean | Set to 1 to open Niffler in a small split
+
+
+Additionally, the dictionary passed to |niffler#custom()| can be accessed from
+the sink function if is defined as a |Dictionary-function|.  This enables
+passing of any needed options/state variables to the sink function which can
+be subsequently accessed through the |self| variable. >
+            call niffler#custom({'source': ["hello", "world"],
+                \ 'sink': function("MySink"), 'id': 123})
+
+            function! MySink(candidate) dict
+                let myId = self.id
+                if myId == 123
+                    execute "edit" a:candidate
+                endif
+            endfunction
+<
 
 ==============================================================================
 vim:tw=80:ts=8:ft=help:norl:

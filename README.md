@@ -48,11 +48,11 @@ of the search query.
 
 Niffler has several different modes:
 
-| Command           | Description                                                           |
-| ----------------- | ----------------------------------------------------------------------|
-| `Niffler`         | Fuzzy file search                                                     |
-| `NifflerMRU`      | Fuzzy file search on MRU cache                                        |
-| `NifflerBuffer`   | Fuzzy file search on buffer list                                      |
+| Command           | Description                                                          |
+| ----------------- | ---------------------------------------------------------------------|
+| `Niffler`         | Fuzzy file search                                                    |
+| `NifflerMRU`      | Fuzzy file search on MRU cache                                       |
+| `NifflerBuffer`   | Fuzzy file search on buffer list                                     |
 | `NifflerTags`     | Fuzzy tag search on ctags list                                       |
 | `NifflerTselect`  | Fuzzy tag search on matching tags                                    |
 | `NifflerTjump`    | Fuzzy tag search on matching tags, jump directly if only one match   |
@@ -99,6 +99,8 @@ command and filter a list of matching tags.
 
 ### Configuration
 
+- `niffler#custom()`
+    - Create customized lists of candidates to filter through
 - `g:niffler_user_command`
     - Custom file indexing command, use %s in place of the target directory
     - i.e. `let g:niffler_user_command = 'ag %s -g ""'`
