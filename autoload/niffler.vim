@@ -281,9 +281,11 @@ endfunction
 
 
 function! s:set_niffler_options()
+    let is_hlsearch_suspended = (&hlsearch == 1) && (v:hlsearch == 0)
     let enabled_boolean_options = filter(["fen", "wrap", "spell", "cuc", "nu", "rnu", "hls", "list"], 'eval("&".v:val)')
     let restore_options = "setlocal foldcolumn=%d colorcolumn=%s %s"
     let b:niffler.restore_options = printf(restore_options, &foldcolumn, &colorcolumn, join(enabled_boolean_options))
+    let b:niffler.nohlsearch = is_hlsearch_suspended ? "nohlsearch" : ""
     set filetype=niffler
     setlocal buftype=nofile
     setlocal bufhidden=wipe
@@ -443,6 +445,7 @@ function! s:close_niffler(...)
     call matchdelete(b:niffler.highlight_group)
     call setmatches(b:niffler.save_matches)
     execute b:niffler.restore_options
+    execute b:niffler.nohlsearch
     execute "keepalt keepjumps buffer" b:niffler.origin_buffer
     execute "silent! bwipeout!" niffler_buffer
     call s:lchdir(save_wd)
