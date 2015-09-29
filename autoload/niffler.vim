@@ -272,7 +272,7 @@ endfunction
 function! s:open_niffler_buffer()
     let origin_buffer = bufname("%")
     let save_cursor = getpos(".")
-    keepalt keepjumps edit __Niffler__
+    noautocmd keepalt keepjumps edit __Niffler__
     let b:niffler = {}
     let b:niffler.origin_buffer = origin_buffer
     let b:niffler.save_cursor = save_cursor
@@ -446,7 +446,7 @@ function! s:close_niffler(...)
     call setmatches(b:niffler.save_matches)
     execute b:niffler.restore_options
     execute b:niffler.nohlsearch
-    execute "keepalt keepjumps buffer" b:niffler.origin_buffer
+    execute "noautocmd keepalt keepjumps buffer" b:niffler.origin_buffer
     execute "silent! bwipeout!" niffler_buffer
     call s:lchdir(save_wd)
     if preview | wincmd c | endif
