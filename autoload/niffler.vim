@@ -66,12 +66,15 @@ function! niffler#tags(use_current_buffer)
     endif
     if a:use_current_buffer
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist_current_buffer()
+        let conceal_active = 0
     else
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist()
+        let conceal_active = 1
     endif
     let niffler_options = {"sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
     call s:niffler_setup(taglist, niffler_options)
+    call s:tag_conceal(conceal_active, 1)
     call s:keypress_event_loop()
 endfunction
 
@@ -135,6 +138,7 @@ function! niffler#tselect(identifier)
     let niffler_options = {"preview": 1, "sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
     call s:niffler_setup(join(tselect_candidates, "\n"), niffler_options)
+    call s:tag_conceal(1, 0)
     call s:keypress_event_loop()
 endfunction
 
@@ -297,6 +301,19 @@ endfunction
 
 function! s:echo_error(error_message)
     echohl ErrorMsg | echomsg a:error_message | echohl None
+endfunction
+
+
+function! s:tag_conceal(conceal_active, use_tag_regex)
+    if !a:conceal_active
+        return
+    endif
+    let separator = has("win32") ? '\' : '/'
+    let sep = escape(separator, '\')
+    let tag_regex = (a:use_tag_regex ? '^\S\+\s\+' : '^')
+    let isfname_regex = '\%([^'.sep.' ]\|\\\@<= \)*'
+    let path_head_regex = tag_regex.'\zs'.sep.'\?\%('.isfname_regex.sep.'\)*'
+    execute printf("syntax match NifflerPathHead '%s' conceal", path_head_regex)
 endfunction
 
 
