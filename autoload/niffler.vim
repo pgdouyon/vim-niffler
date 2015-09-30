@@ -69,7 +69,7 @@ function! niffler#tags(use_current_buffer)
         let conceal_active = 0
     else
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist()
-        let conceal_active = 1
+        let conceal_active = g:niffler_conceal_tags_fullpath
     endif
     let niffler_options = {"sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
@@ -138,7 +138,7 @@ function! niffler#tselect(identifier)
     let niffler_options = {"preview": 1, "sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
     call s:niffler_setup(join(tselect_candidates, "\n"), niffler_options)
-    call s:tag_conceal(1, 0)
+    call s:tag_conceal(g:niffler_conceal_tags_fullpath, 0)
     call s:keypress_event_loop()
 endfunction
 

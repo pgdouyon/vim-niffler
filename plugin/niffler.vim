@@ -33,6 +33,7 @@ call s:set_default("g:niffler_fuzzy_char", '"*"')
 call s:set_default("g:niffler_ignore_extensions", "[]")
 call s:set_default("g:niffler_ignore_dirs", "[]")
 call s:set_default("g:niffler_user_command", '""')
+call s:set_default("g:niffler_conceal_tags_fullpath", '1')
 
 highlight default link NifflerCursorLine Error
 

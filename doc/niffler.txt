@@ -108,6 +108,15 @@ g:niffler_mru_ignore_filetypes                *g:niffler_mru_ignore_filetypes*
 <
                         The default value is []
 
+g:niffler_conceal_tags_fullpath              *g:niffler_conceal_tags_fullpath*
+                        When set Niffler conceals the full path of the
+                        filename for the |NifflerTags|, |NifflerTselect|, and
+                        |NifflerTjump| commands and only shows the basename of
+                        the file. >
+                            let g:niffler_conceal_tags_fullpath = 0
+<
+                        The default value is 1
+
 
 
 ==============================================================================
