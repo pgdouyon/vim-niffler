@@ -387,14 +387,15 @@ function! s:move_prev_line(prompt)
 endfunction
 
 
-function! s:scroll_left(prompt)
-    normal! zH
+function! s:move_start_line(prompt)
+    normal! 0
     return a:prompt
 endfunction
 
 
-function! s:scroll_right(prompt)
-    normal! zL
+function! s:move_end_line(prompt)
+    normal! g_
+    execute "normal!" winwidth(0)/3."zh"
     return a:prompt
 endfunction
 
@@ -487,8 +488,8 @@ let s:function_map = {
     \"\<C-N>" : function("<SID>move_next_line"),
     \"\<C-K>" : function("<SID>move_prev_line"),
     \"\<C-P>" : function("<SID>move_prev_line"),
-    \"\<C-A>" : function("<SID>scroll_left"),
-    \"\<C-E>" : function("<SID>scroll_right"),
+    \"\<C-A>" : function("<SID>move_start_line"),
+    \"\<C-E>" : function("<SID>move_end_line"),
     \"\<CR>"  : function("<SID>open_current_window"),
     \"\<C-S>" : function("<SID>open_split_window"),
     \"\<C-V>" : function("<SID>open_vert_split"),
