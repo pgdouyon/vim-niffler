@@ -53,6 +53,7 @@ of the search query. >
     iz*buz:45 will open a file fizzbazbuzz and jump to line 45
     iz*buz:diffthis will open a file fizzbazbuzz and add the file to the diff windows
 <
+To search for a literal ":" character, precede it with a single backslash.
 
 
 ==============================================================================

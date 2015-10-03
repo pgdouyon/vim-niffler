@@ -644,13 +644,13 @@ endfunction
 
 
 function! s:parse_query(prompt)
-    let query = get(split(a:prompt, ':\ze[^:]*$'), 0, "")
+    let query = get(split(a:prompt, '\\\@<!:\ze[^:]*$'), 0, "")
     return query
 endfunction
 
 
 function! s:parse_command(prompt)
-    let command = get(split(a:prompt, ':\ze[^:]*$'), 1, "")
+    let command = get(split(a:prompt, '\\\@<!:\ze[^:]*$'), 1, "")
     return command
 endfunction
 
