@@ -12,6 +12,7 @@ set cpoptions&vim
 " Script Local Config
 " ======================================================================
 let s:prompt = "> "
+let s:marked_indicator = "* "
 
 let s:autoload_folder = expand("<sfile>:p:h")
 let s:mru_cache_file = s:autoload_folder."/niffler_mru_list.txt"
@@ -268,6 +269,7 @@ function! s:niffler_setup(candidate_string, options)
     let b:niffler.candidates = a:candidate_string
     let b:niffler.candidate_limit = winheight(0)
     let b:niffler.working_directory = getcwd()
+    let b:niffler.marked_selections = []
     let b:niffler.isactive = 1
     call s:display(split(a:candidate_string, "\n")[0:b:niffler.candidate_limit - 1])
 endfunction
@@ -295,7 +297,7 @@ endfunction
 function! s:set_niffler_cursorline()
     let save_matches = filter(getmatches(), 'has_key(v:val, "pattern")')
     let b:niffler.save_matches = save_matches | call clearmatches()
-    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 10)
 endfunction
 
 
@@ -372,7 +374,7 @@ function! s:move_next_line(prompt)
     let next_line = (is_last_line ? 1 : line(".") + 1)
     call cursor(next_line, col("."))
     call matchdelete(b:niffler.highlight_group)
-    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 10)
     return a:prompt
 endfunction
 
@@ -382,7 +384,7 @@ function! s:move_prev_line(prompt)
     let prev_line = (is_first_line ? line("$") : line(".") - 1)
     call cursor(prev_line, col("."))
     call matchdelete(b:niffler.highlight_group)
-    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 0)
+    let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 10)
     return a:prompt
 endfunction
 
@@ -433,15 +435,21 @@ endfunction
 function! s:open_selection(prompt, create_window)
     let niffler = b:niffler
     let command = s:parse_command(a:prompt)
-    let selection = substitute(getline("."), '\s*$', '', '')
+    let current_selection = s:cleanup_selection(getline("."))
     call s:close_niffler()
 
+    let alternate_buffer = bufnr("%")
     execute a:create_window
-    if type(niffler.sink) == type("")
-        execute niffler.sink selection
-    else
-        call niffler.sink(selection)
-    endif
+    for selection in add(niffler.marked_selections, current_selection)
+        if type(niffler.sink) == type("")
+            execute niffler.sink selection
+        else
+            call niffler.sink(selection)
+        endif
+    endfor
+    let current_buffer = bufnr("%")
+    execute "buffer" alternate_buffer
+    execute "buffer" current_buffer
     execute command
 endfunction
 
@@ -479,6 +487,38 @@ function! s:paste_from_register(prompt)
 endfunction
 
 
+function! s:mark_selection(prompt)
+    let current_selection = s:cleanup_selection(getline("."))
+    let index = index(b:niffler.marked_selections, current_selection)
+    if index < 0
+        execute printf("normal! I%s", s:marked_indicator)
+        call s:highlight_mark(current_selection)
+        call add(b:niffler.marked_selections, current_selection)
+    else
+        execute printf("normal! 0%dx", strchars(s:marked_indicator))
+        call remove(b:niffler.marked_selections, index)
+    endif
+    return a:prompt
+endfunction
+
+
+function! s:cleanup_selection(selection)
+    let marked_regex = '\V\^' . escape(s:marked_indicator, '\')
+    let trimmed_selection = substitute(a:selection, '\s*$', '', '')
+    let is_marked = (trimmed_selection =~# marked_regex)
+    if is_marked
+        return substitute(trimmed_selection, marked_regex, '', '')
+    endif
+    return trimmed_selection
+endfunction
+
+
+function! s:highlight_mark(selection)
+    let match_pattern = printf('\V\^%s%s \+\$', escape(s:marked_indicator, '\'), escape(a:selection, '\'))
+    call matchadd('NifflerMarkedLine', match_pattern, 0)
+endfunction
+
+
 let s:function_map = {
     \"\<BS>"  : function("<SID>backspace"),
     \"\<C-H>" : function("<SID>backspace"),
@@ -496,7 +536,8 @@ let s:function_map = {
     \"\<C-T>" : function("<SID>open_tab_window"),
     \"\<Esc>" : function("<SID>close_niffler"),
     \"\<C-G>" : function("<SID>close_niffler"),
-    \"\<C-R>" : function("<SID>paste_from_register")
+    \"\<C-R>" : function("<SID>paste_from_register"),
+    \"\<C-X>" : function("<SID>mark_selection")
     \}
 
 
@@ -516,6 +557,7 @@ function! s:filter_candidate_list(query)
         let b:niffler.candidates = candidates
     endif
     call s:display(candidate_list)
+    call s:refresh_marks()
 endfunction
 
 
@@ -582,6 +624,22 @@ function! s:get_candidate_set(candidate_list)
         let candidate_set[candidate] = 0
     endfor
     return candidate_set
+endfunction
+
+
+function! s:refresh_marks()
+    let visible_candidate_list = getline(1, "$")
+    let refreshed_marked_selections = []
+    for lnum in range(1, len(visible_candidate_list))
+        let selection = s:cleanup_selection(visible_candidate_list[lnum - 1])
+        let is_marked = (index(b:niffler.marked_selections, selection) >= 0)
+        if is_marked
+            execute printf("%d normal! I%s", lnum, s:marked_indicator)
+            call add(refreshed_marked_selections, selection)
+        endif
+    endfor
+    let b:niffler.marked_selections = refreshed_marked_selections
+    call cursor(1, 1)
 endfunction
 
 

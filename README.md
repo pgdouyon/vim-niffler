@@ -90,6 +90,7 @@ command and filter a list of matching tags.
 | `<C-A>`                   | Scroll to the beginning of the line       |
 | `<C-E>`                   | Scroll to the end of the line             |
 | `<C-R>`                   | Insert the contents of a register         |
+| `<C-X>`                   | Mark multiple selections for opening      |
 | `<CR>`                    | Open selection in current window          |
 | `<C-S>`                   | Open selection in new horizontal split    |
 | `<C-V>`                   | Open selection in new vertical split      |
@@ -111,8 +112,6 @@ command and filter a list of matching tags.
     - List of directories to exclude from Niffler results
     - Helpful for large directories that could slow Niffler down
     - Ignored when `g:niffler_user_command` is non-empty
-- `g:niffler_mru_max_history`
-    - Size of the MRU cache (default 300)
 
 
 Requirements

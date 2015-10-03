@@ -176,11 +176,15 @@ The following key mappings are supported in any of the Niffler buffers.
  <C-A>                     | Scroll towards the beginning of the line
  <C-E>                     | Scroll towards the end of the line
  <C-R>                     | Insert the contents of a register
+ <C-X>                     | Mark multiple selections for opening
  <CR>                      | Open selection in current window
  <C-S>                     | Open selection in new horizontal split
  <C-V>                     | Open selection in new vertical split
  <C-T>                     | Open selection in new tab window
- <Esc>, <C-[>, <C-C>       | Quit Niffler
+ <Esc>, <C-[>, <C-G>       | Quit Niffler
+
+The mnemonic for the <C-X> mapping is "X marks the spot".  I would have used
+<C-M> but that was unavailable (aliased to <CR>).
 
 
 

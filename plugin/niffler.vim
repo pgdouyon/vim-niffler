@@ -36,6 +36,7 @@ call s:set_default("g:niffler_user_command", '""')
 call s:set_default("g:niffler_conceal_tags_fullpath", '1')
 
 highlight default link NifflerCursorLine Error
+highlight default link NifflerMarkedLine Todo
 
 
 " ======================================================================
