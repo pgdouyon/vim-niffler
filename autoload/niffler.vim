@@ -440,17 +440,21 @@ function! s:open_selection(prompt, create_window)
 
     let alternate_buffer = bufnr("%")
     execute a:create_window
-    for selection in add(niffler.marked_selections, current_selection)
-        if type(niffler.sink) == type("")
-            execute niffler.sink selection
-        else
-            call niffler.sink(selection)
-        endif
+    for selection in niffler.marked_selections
+        call s:sink(niffler, selection)
     endfor
-    let current_buffer = bufnr("%")
     execute "buffer" alternate_buffer
-    execute "buffer" current_buffer
+    call s:sink(niffler, current_selection)
     execute command
+endfunction
+
+
+function! s:sink(niffler, selection)
+    if type(a:niffler.sink) == type("")
+        execute a:niffler.sink a:selection
+    else
+        call a:niffler.sink(a:selection)
+    endif
 endfunction
 
 
