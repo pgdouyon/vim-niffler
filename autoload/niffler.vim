@@ -443,7 +443,7 @@ function! s:open_selection(prompt, create_window)
     for selection in niffler.marked_selections
         call s:sink(niffler, selection)
     endfor
-    execute "buffer" alternate_buffer
+    execute "noautocmd keepjumps buffer" alternate_buffer
     call s:sink(niffler, current_selection)
     execute command
 endfunction
