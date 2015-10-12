@@ -288,9 +288,10 @@ endfunction
 
 function! s:set_niffler_options()
     let is_hlsearch_suspended = (&hlsearch == 1) && (v:hlsearch == 0)
+    let b:niffler.set_hlsearch = &hlsearch ? "set hlsearch" : "set nohlsearch"
     let b:niffler.nohlsearch = is_hlsearch_suspended ? "nohlsearch" : ""
     set filetype=niffler
-    setlocal nohlsearch
+    set nohlsearch
 endfunction
 
 
@@ -466,6 +467,7 @@ function! s:close_niffler(...)
     let niffler_buffer = bufnr("%")
     call matchdelete(b:niffler.highlight_group)
     call setmatches(b:niffler.save_matches)
+    execute b:niffler.set_hlsearch
     execute b:niffler.nohlsearch
     execute "noautocmd keepalt keepjumps buffer" b:niffler.origin_buffer
     execute "silent! bwipeout!" niffler_buffer
