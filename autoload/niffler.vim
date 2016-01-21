@@ -275,9 +275,15 @@ endfunction
 
 
 function! s:open_niffler_buffer()
-    let origin_buffer = bufname("%")
     let save_cursor = getpos(".")
+    let origin_buffer = bufnr("%")
     noautocmd keepalt keepjumps edit __Niffler__
+    if origin_buffer == bufnr("%")
+        " origin buffer was a new/unnamed buffer created with :new or :tabe,
+        " create a new one to replace the one Niffler usurped
+        enew | buffer #
+        let origin_buffer = bufnr("#")
+    endif
     let b:niffler = {}
     let b:niffler.origin_buffer = origin_buffer
     let b:niffler.save_cursor = save_cursor
