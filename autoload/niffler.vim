@@ -449,7 +449,7 @@ function! s:open_selection(prompt, create_window)
     for selection in niffler.marked_selections
         call s:sink(niffler, selection)
     endfor
-    execute "noautocmd keepjumps buffer" alternate_buffer
+    call s:try_visit(alternate_buffer)
     call s:sink(niffler, current_selection)
     execute command
 endfunction
@@ -469,18 +469,26 @@ function! s:close_niffler(...)
     let save_wd = get(b:niffler, "save_wd", getcwd())
     let preview = get(b:niffler, "preview", 0)
     let save_cursor = b:niffler.save_cursor
+
     let niffler_buffer = bufnr("%")
     call matchdelete(b:niffler.highlight_group)
     call setmatches(b:niffler.save_matches)
     execute b:niffler.set_hlsearch
     execute b:niffler.nohlsearch
-    execute "noautocmd keepalt keepjumps buffer" b:niffler.origin_buffer
-    execute "silent! bwipeout!" niffler_buffer
+    call s:try_visit(b:niffler.origin_buffer, "keepalt")
     call s:lchdir(save_wd)
     if preview | wincmd c | endif
     call setpos(".", save_cursor)
     redraw | echo
     " above command is needed because Vim leaves the prompt on screen when there are no buffers open
+endfunction
+
+
+function! s:try_visit(bufnr, ...)
+    if a:bufnr != bufnr("%") && bufexists(a:bufnr)
+        let noautocmd = bufloaded(a:bufnr) ? "noautocmd" : ""
+        execute noautocmd join(a:000, " ") "keepjumps buffer" a:bufnr
+    endif
 endfunction
 
 
