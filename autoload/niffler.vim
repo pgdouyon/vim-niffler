@@ -494,15 +494,27 @@ endfunction
 
 function! s:paste_from_register(prompt)
     let register = getchar()
-    if !type(register)
-        let paste_text = getreg(nr2char(register))
+    let paste_text = s:getreg(register)
+    if !empty(paste_text)
         let prompt = a:prompt . paste_text
         let query = s:parse_query(prompt)
         call s:filter_candidate_list(query)
         return prompt
-    else
-        return a:prompt
     endif
+    return a:prompt
+endfunction
+
+
+function! s:getreg(register)
+    if type(a:register) != type(0)
+        return ""
+    endif
+
+    let register_name = nr2char(a:register)
+    if register_name ==# "%"
+        return bufname(b:niffler.origin_buffer)
+    endif
+    return getreg(register_name)
 endfunction
 
 
