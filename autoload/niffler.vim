@@ -249,13 +249,17 @@ function! s:filter_ignore_files(candidates)
 endfunction
 
 
-function! s:niffler_setup(candidate_list, options)
+function! s:niffler_setup(candidate_list, options) abort
     if !executable("grep")
         let error_message = "[Niffler] - `grep` executable not found. Unable to filter candidate list."
         call s:echo_error(error_message)
         return
     elseif empty(a:candidate_list)
         let error_message = "[Niffler] - No results found. Unable to create candidate list."
+        call s:echo_error(error_message)
+        return
+    elseif &modified && !(&hidden || &bufhidden ==# "hide") && !&autowriteall
+        let error_message = "E37: No write since last change"
         call s:echo_error(error_message)
         return
     endif
@@ -274,7 +278,7 @@ function! s:niffler_setup(candidate_list, options)
 endfunction
 
 
-function! s:open_niffler_buffer()
+function! s:open_niffler_buffer() abort
     let save_cursor = getpos(".")
     let origin_buffer = bufnr("%")
     noautocmd keepalt keepjumps edit __Niffler__
