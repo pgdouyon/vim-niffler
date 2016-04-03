@@ -252,15 +252,14 @@ endfunction
 function! s:niffler_setup(candidate_list, options) abort
     if !executable("grep")
         let error_message = "[Niffler] - `grep` executable not found. Unable to filter candidate list."
-        call s:echo_error(error_message)
-        return
     elseif empty(a:candidate_list)
         let error_message = "[Niffler] - No results found. Unable to create candidate list."
-        call s:echo_error(error_message)
-        return
     elseif &modified && !(&hidden || &bufhidden ==# "hide") && !&autowriteall
         let error_message = "E37: No write since last change"
+    endif
+    if exists("error_message")
         call s:echo_error(error_message)
+        call s:cleanup(a:options)
         return
     endif
     call s:open_niffler_buffer()
@@ -316,8 +315,13 @@ function! s:echo_error(error_message)
 endfunction
 
 
+function! s:is_active()
+    return exists("b:niffler.isactive")
+endfunction
+
+
 function! s:tag_conceal(conceal_active, use_tag_regex)
-    if !a:conceal_active
+    if !a:conceal_active || !s:is_active()
         return
     endif
     let separator = has("win32") ? '\' : '/'
@@ -331,7 +335,7 @@ endfunction
 
 function! s:keypress_event_loop()
     let prompt = ""
-    while exists("b:niffler.isactive")
+    while s:is_active()
         call s:redraw_prompt(prompt)
         let nr = getchar()
         let char = !type(nr) ? nr2char(nr) : nr
@@ -469,22 +473,34 @@ endfunction
 
 
 function! s:close_niffler(...)
+    if !s:is_active()
+        return
+    endif
     unlet b:niffler.isactive
-    let save_wd = get(b:niffler, "save_wd", getcwd())
-    let preview = get(b:niffler, "preview", 0)
-    let save_cursor = b:niffler.save_cursor
-
-    let niffler_buffer = bufnr("%")
-    call matchdelete(b:niffler.highlight_group)
-    call setmatches(b:niffler.save_matches)
-    execute b:niffler.set_hlsearch
-    execute b:niffler.nohlsearch
+    let niffler_options = b:niffler
     call s:try_visit(b:niffler.origin_buffer, "keepalt")
-    call s:lchdir(save_wd)
-    if preview | wincmd c | endif
-    call setpos(".", save_cursor)
+    call s:cleanup(niffler_options)
     redraw | echo
     " above command is needed because Vim leaves the prompt on screen when there are no buffers open
+endfunction
+
+
+function! s:cleanup(saved_state)
+    let save_wd = get(a:saved_state, "save_wd", getcwd())
+    let save_cursor = get(a:saved_state, "save_cursor", getpos("."))
+    if has_key(a:saved_state, "highlight_group")
+        call matchdelete(a:saved_state.highlight_group)
+    endif
+    if has_key(a:saved_state, "save_matches")
+        call setmatches(a:saved_state.save_matches)
+    endif
+    execute get(a:saved_state, "set_hlsearch", "")
+    execute get(a:saved_state, "nohlsearch", "")
+    call s:lchdir(save_wd)
+    if get(a:saved_state, "preview", 0)
+        wincmd c
+    endif
+    call setpos(".", save_cursor)
 endfunction
 
 
