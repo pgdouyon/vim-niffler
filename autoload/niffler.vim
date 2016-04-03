@@ -159,7 +159,7 @@ function! s:open_file(selection) dict
     call s:lchdir(self.working_directory)
     let selection = fnamemodify(a:selection, ":p")
     let open_cmd = bufexists(selection) ? "buffer" : "edit"
-    execute open_cmd fnameescape(selection)
+    execute "silent" open_cmd fnameescape(selection)
     call s:lchdir(save_wd)
 endfunction
 
@@ -280,7 +280,7 @@ endfunction
 function! s:open_niffler_buffer() abort
     let save_cursor = getpos(".")
     let origin_buffer = bufnr("%")
-    noautocmd keepalt keepjumps edit __Niffler__
+    silent noautocmd keepalt keepjumps edit __Niffler__
     if origin_buffer == bufnr("%")
         " origin buffer was a new/unnamed buffer created with :new or :tabe,
         " create a new one to replace the one Niffler usurped
@@ -507,7 +507,7 @@ endfunction
 function! s:try_visit(bufnr, ...)
     if a:bufnr != bufnr("%") && bufexists(a:bufnr)
         let noautocmd = bufloaded(a:bufnr) ? "noautocmd" : ""
-        execute noautocmd join(a:000, " ") "keepjumps buffer" a:bufnr
+        execute "silent" noautocmd join(a:000, " ") "keepjumps buffer" a:bufnr
     endif
 endfunction
 
