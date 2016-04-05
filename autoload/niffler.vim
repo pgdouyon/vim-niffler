@@ -92,7 +92,7 @@ function! s:taglist()
         let tags = systemlist(printf(tags_cmd, tagfile, escape_filename_spaces, trim_pattern_noise))
         let taglist += tags
     endfor
-    let parse_tag_excmd = 'printf("/^\\s*\\V%s", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "\\"))'
+    let parse_tag_excmd = 'printf("/^\\s*\\V%s\\$", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "\\"))'
     let parse_tag_filename = 'substitute(matchstr(v:val, ''^\S*\s*\zs.\{-\}\ze\\\@<!\s''), "\\\\ ", " ", "g")'
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
     return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
@@ -104,7 +104,7 @@ function! s:taglist_current_buffer()
     let trim_pattern_noise = escape("s:/^[ \t]*(.*)[ \t]*$/;\":\\1:", '^$()')
     let taglist_cmd = "ctags -f - %s | sed -e '%s' | cut -f1,3"
     let taglist = systemlist(printf(taglist_cmd, current_buffer, trim_pattern_noise))
-    let parse_tag_excmd = 'printf("/^\\s*\\V%s", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "\\"))'
+    let parse_tag_excmd = 'printf("/^\\s*\\V%s\\$", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "\\"))'
     let parse_tag_filename = string(expand("%:p"))
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
     return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
