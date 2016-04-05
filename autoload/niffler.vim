@@ -119,7 +119,7 @@ function! niffler#tselect(identifier)
     endif
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
     redir => tselect_out
-    execute "silent tselect" identifier
+    execute "silent! tselect" identifier
     redir END
 
     let tselect_lines_sanitized = join(split(tselect_out, "\n")[1:-2], "\n")
