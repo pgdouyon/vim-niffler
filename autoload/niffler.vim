@@ -67,6 +67,8 @@ function! niffler#tags(use_current_buffer)
     if a:use_current_buffer
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist_current_buffer()
         let conceal_active = 0
+        let save_hidden = &hidden
+        set hidden
     else
         let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist()
         let conceal_active = g:niffler_conceal_tags_fullpath
@@ -76,6 +78,9 @@ function! niffler#tags(use_current_buffer)
     call s:niffler_setup(taglist, niffler_options)
     call s:tag_conceal(conceal_active, 1)
     call s:keypress_event_loop()
+    if exists("save_hidden")
+        let &hidden = save_hidden
+    endif
 endfunction
 
 
