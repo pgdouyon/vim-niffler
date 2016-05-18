@@ -251,29 +251,30 @@ endfunction
 
 function! s:niffler_setup(candidate_list, options) abort
     if !executable("grep")
-        let error_message = "[Niffler] - `grep` executable not found. Unable to filter candidate list."
-    elseif empty(a:candidate_list)
-        let error_message = "[Niffler] - No results found. Unable to create candidate list."
-    elseif &modified && !(&hidden || &bufhidden ==# "hide") && !&autowriteall
-        let error_message = "E37: No write since last change"
-    endif
-    if exists("error_message")
-        call s:echo_error(error_message)
+        call s:echo_error("[Niffler] - `grep` executable not found. Unable to filter candidate list.")
         call s:cleanup(a:options)
-        return
+    elseif empty(a:candidate_list)
+        call s:echo_error("[Niffler] - No results found. Unable to create candidate list.")
+        call s:cleanup(a:options)
+    else
+        try
+            call s:open_niffler_buffer()
+            call s:set_niffler_options()
+            call s:set_niffler_cursorline()
+            call s:prune_mru_list()
+            call extend(b:niffler, a:options)
+            let b:niffler.candidate_list_original = a:candidate_list
+            let b:niffler.candidate_list = a:candidate_list
+            let b:niffler.candidate_limit = winheight(0)
+            let b:niffler.working_directory = getcwd()
+            let b:niffler.marked_selections = []
+            let b:niffler.isactive = 1
+            call s:display(a:candidate_list[0:b:niffler.candidate_limit - 1])
+        catch
+            call s:echo_error(substitute(v:exception, '^[^:]*:', '', ''))
+            call s:cleanup(a:options)
+        endtry
     endif
-    call s:open_niffler_buffer()
-    call s:set_niffler_options()
-    call s:set_niffler_cursorline()
-    call s:prune_mru_list()
-    call extend(b:niffler, a:options)
-    let b:niffler.candidate_list_original = a:candidate_list
-    let b:niffler.candidate_list = a:candidate_list
-    let b:niffler.candidate_limit = winheight(0)
-    let b:niffler.working_directory = getcwd()
-    let b:niffler.marked_selections = []
-    let b:niffler.isactive = 1
-    call s:display(a:candidate_list[0:b:niffler.candidate_limit - 1])
 endfunction
 
 
