@@ -86,33 +86,41 @@ endfunction
 
 function! s:taglist()
     let taglist = []
-    let tagfiles = tagfiles()
-    for tagfile in tagfiles
-        let not_tab = "[^\t]*"
-        let escaped_space = '\1\\ '
-        let escape_filename_space = escape(printf("s/^(%s\t%s[^\\]) /%s/", not_tab, not_tab, escaped_space), '()')
-        let escape_filename_spaces = printf("-e ':loop' -e '%s' -e 't loop'", escape_filename_space)
-        let trim_pattern_noise = escape("-e 's:/^[ \t]*(.*)[ \t]*$/;\":\\1:'", '^$()')
-        let tags_cmd = "grep -v ^!_TAG_ %s | sed %s %s | cut -f1-3"
-        let tags = systemlist(printf(tags_cmd, tagfile, escape_filename_spaces, trim_pattern_noise))
-        let taglist += tags
+    for tagfile in tagfiles()
+        let taglist += systemlist(printf("grep -v '^!_TAG_' %s", tagfile))
     endfor
+
     let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "\\"))'
     let parse_tag_filename = 'substitute(matchstr(v:val, ''^\S*\s*\zs.\{-\}\ze\\\@<!\s''), "\\\\ ", " ", "g")'
-    let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
+    let display_preprocessor_fmt_string = 'systemlist("sed %s | cut -f1-3 | column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n")'
+    let display_preprocessor = printf(display_preprocessor_fmt_string, s:sed_arguments())
     return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
 endfunction
 
 
 function! s:taglist_current_buffer()
     let current_buffer = expand("%:p")
-    let trim_pattern_noise = escape("s:/^[ \t]*(.*)[ \t]*$/;\":\\1:", '^$()')
-    let taglist_cmd = "ctags -f - %s | sed -e '%s' | cut -f1,3"
-    let taglist = systemlist(printf(taglist_cmd, current_buffer, trim_pattern_noise))
+    let taglist = systemlist(printf("ctags -f - %s", current_buffer))
+
     let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "\\"))'
     let parse_tag_filename = string(expand("%:p"))
-    let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
+    let display_preprocessor_fmt_string = 'systemlist("sed -e ''%s'' | cut -f1,3 | column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n")'
+    let display_preprocessor = printf(display_preprocessor_fmt_string, escape(s:trim_pattern_noise(), '"\'))
     return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
+endfunction
+
+
+function! s:sed_arguments()
+    let not_tab = "[^\t]*"
+    let escaped_space = '\1\\ '
+    let escape_filename_space = escape(printf("s/^(%s\t%s[^\\\\]) /%s/", not_tab, not_tab, escaped_space), '()')
+    let arguments = printf("-e ':loop' -e '%s' -e 't loop' -e '%s'", escape_filename_space, s:trim_pattern_noise())
+    return escape(arguments, '"\')
+endfunction
+
+
+function! s:trim_pattern_noise()
+    return escape("s:/^[ \t]*(.*)[ \t]*$/;\":\\1:", '^$()')
 endfunction
 
 
