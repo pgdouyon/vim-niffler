@@ -11,7 +11,6 @@ set cpoptions&vim
 " ======================================================================
 " Script Local Config
 " ======================================================================
-let s:prompt = "> "
 let s:marked_indicator = "* "
 
 let s:autoload_folder = expand("<sfile>:p:h")
@@ -37,7 +36,7 @@ function! niffler#niffler(args)
     let niffler_options = {"save_wd": save_wd, "sink": function("s:open_file"),
             \ "display_preprocessor": function("s:sort_by_mru")}
     call s:niffler_setup(candidate_list, niffler_options)
-    call s:keypress_event_loop()
+    call s:keypress_event_loop('Files')
 endfunction
 
 
@@ -45,7 +44,7 @@ function! niffler#mru()
     let niffler_options = {"sink": function("s:open_file")}
     call s:prune_mru_list()
     call s:niffler_setup(reverse(copy(s:mru_list)), niffler_options)
-    call s:keypress_event_loop()
+    call s:keypress_event_loop('MRU')
 endfunction
 
 
@@ -54,7 +53,7 @@ function! niffler#buffer()
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
     let niffler_options = {"sink": function("s:open_file"), "display_preprocessor": function("s:sort_by_mru")}
     call s:niffler_setup(buflist, niffler_options)
-    call s:keypress_event_loop()
+    call s:keypress_event_loop('Buffers')
 endfunction
 
 
@@ -77,7 +76,7 @@ function! niffler#tags(use_current_buffer)
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
     call s:niffler_setup(taglist, niffler_options)
     call s:tag_conceal(conceal_active, 1)
-    call s:keypress_event_loop()
+    call s:keypress_event_loop('Tags')
     if exists("save_hidden")
         let &hidden = save_hidden
     endif
@@ -152,7 +151,7 @@ function! niffler#tselect(identifier)
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
     call s:niffler_setup(tselect_candidates, niffler_options)
     call s:tag_conceal(g:niffler_conceal_tags_fullpath, 0)
-    call s:keypress_event_loop()
+    call s:keypress_event_loop('Tselect')
 endfunction
 
 
@@ -210,7 +209,7 @@ function! niffler#custom(args)
     endif
     let niffler_options = extend(a:args, {"save_wd": save_wd})
     call s:niffler_setup(candidates, niffler_options)
-    call s:keypress_event_loop()
+    call s:keypress_event_loop(get(a:args, "prompt", ""))
 endfunction
 
 
@@ -350,10 +349,10 @@ function! s:tag_conceal(conceal_active, use_tag_regex)
 endfunction
 
 
-function! s:keypress_event_loop()
+function! s:keypress_event_loop(prompt_text)
     let prompt = ""
     while s:is_active()
-        call s:redraw_prompt(prompt)
+        call s:redraw_prompt(a:prompt_text, prompt)
         let nr = getchar()
         let char = !type(nr) ? nr2char(nr) : nr
         if (char =~# '\p') && (type(nr) == 0)
@@ -433,9 +432,9 @@ function! s:move_end_line(prompt)
 endfunction
 
 
-function! s:redraw_prompt(prompt)
+function! s:redraw_prompt(text, prompt)
     redraw
-    echon s:prompt a:prompt
+    echon substitute(g:niffler_prompt, '%s', a:text, '') a:prompt
 endfunction
 
 
