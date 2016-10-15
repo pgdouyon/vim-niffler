@@ -83,19 +83,19 @@ command and filter a list of matching tags.
 
 ### Key Mappings
 
-| Key                       | Action                                    |
-| ------------------------- | ------------------------------------------|
-| `<C-K>`, `<C-P>`          | Move up one line in the candidate list    |
-| `<C-J>`, `<C-N>`          | Move down one line in the candidate list  |
-| `<C-A>`                   | Scroll to the beginning of the line       |
-| `<C-E>`                   | Scroll to the end of the line             |
-| `<C-R>`                   | Insert the contents of a register         |
-| `<C-X>`                   | Mark multiple selections for opening      |
-| `<CR>`                    | Open selection in current window          |
-| `<C-S>`                   | Open selection in new horizontal split    |
-| `<C-V>`                   | Open selection in new vertical split      |
-| `<C-T>`                   | Open selection in new tab window          |
-| `<Esc>`, `<C-[>`, `<C-C>` | Quit Niffler                              |
+| Key                        | Action                                    |
+| -------------------------- | ------------------------------------------|
+| `<C-K>`, `<C-P>`, `<Up>`   | Move up one line in the candidate list    |
+| `<C-J>`, `<C-N>`, `<Down>` | Move down one line in the candidate list  |
+| `<C-A>`                    | Scroll to the beginning of the line       |
+| `<C-E>`                    | Scroll to the end of the line             |
+| `<C-R>`                    | Insert the contents of a register         |
+| `<C-X>`, `<Left>`          | Mark multiple selections for opening      |
+| `<CR>`, `<Right>`          | Open selection in current window          |
+| `<C-S>`                    | Open selection in new horizontal split    |
+| `<C-V>`                    | Open selection in new vertical split      |
+| `<C-T>`                    | Open selection in new tab window          |
+| `<Esc>`, `<C-[>`, `<C-C>`  | Quit Niffler                              |
 
 
 ### Configuration
