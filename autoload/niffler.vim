@@ -184,6 +184,9 @@ function! s:open_tag(selection) dict
     mark '
     execute "silent" open_cmd fnameescape(tag_filename)
     execute "silent keeppatterns" tag_excmd
+    if (&foldopen =~# 'tag') || (&foldopen =~# 'all')
+        normal! zv
+    endif
 endfunction
 
 
