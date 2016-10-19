@@ -44,7 +44,7 @@ function! niffler#mru()
     let niffler_options = {"sink": function("s:open_file")}
     call s:prune_mru_list()
     call s:niffler_setup(reverse(copy(s:mru_list)), niffler_options)
-    call s:keypress_event_loop('MRU')
+    call s:keypress_event_loop('Mru')
 endfunction
 
 
