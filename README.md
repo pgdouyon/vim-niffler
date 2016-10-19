@@ -112,6 +112,10 @@ command and filter a list of matching tags.
     - List of directories to exclude from Niffler results
     - Helpful for large directories that could slow Niffler down
     - Ignored when `g:niffler_user_command` is non-empty
+- `g:niffler_prompt`
+    - Prompt string for input
+    - The placeholder %s is replaced with the prompt text (optional)
+    - i.e. `let g:niffler_prompt = '%s $ '`
 
 
 Requirements

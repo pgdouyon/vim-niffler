@@ -118,6 +118,18 @@ g:niffler_conceal_tags_fullpath              *g:niffler_conceal_tags_fullpath*
 <
                         The default value is 1
 
+g:niffler_prompt                             *g:niffler_prompt*
+                        The prompt which is displayed before the input.
+                        The placeholder %s in the prompt string is replaced
+                        with the prompt text (optional). For example for the
+                        |Niffler| command the prompt text is "Files". For the
+                        |NifflerBuffer| command the text is "Buffers".
+                        When using the |niffler#custom()| function a custom
+                        prompt text can be specified. >
+                            let g:niffler_prompt = "%s $ "
+<
+                        The default value is "> "
+
 
 
 ==============================================================================
@@ -207,6 +219,7 @@ display_preprocessor | Funcref | Change how 'source' candidates are displayed
 dir                  | String  | Working directory, default is $HOME
 vcs                  | boolean | Set to 1 to use VCS root as working directory
 preview              | boolean | Set to 1 to open Niffler in a small split
+prompt               | string  | Custom prompt text
 
 
 Additionally, the dictionary passed to |niffler#custom()| can be accessed from
