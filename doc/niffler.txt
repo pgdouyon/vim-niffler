@@ -121,14 +121,14 @@ g:niffler_conceal_tags_fullpath              *g:niffler_conceal_tags_fullpath*
 g:niffler_prompt                             *g:niffler_prompt*
                         The prompt which is displayed before the input.
                         The placeholder %s in the prompt string is replaced
-                        with the prompt text. For example for the |Niffler|
-                        command the prompt text is "Files". For the
+                        with the prompt text (optional). For example for the
+                        |Niffler| command the prompt text is "Files". For the
                         |NifflerBuffer| command the text is "Buffers".
                         When using the |niffler#custom()| function a custom
                         prompt text can be specified. >
                             let g:niffler_prompt = "%s $ "
 <
-                        The default value is "%s> "
+                        The default value is "> "
 
 
 
