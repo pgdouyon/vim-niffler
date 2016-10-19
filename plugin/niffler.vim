@@ -35,6 +35,7 @@ call s:set_default("g:niffler_ignore_dirs", "[]")
 call s:set_default("g:niffler_user_command", '""')
 call s:set_default("g:niffler_conceal_tags_fullpath", '1')
 call s:set_default("g:niffler_prompt", '"> "')
+call s:set_default("g:niffler_marked_indicator", '"* "')
 
 highlight default link NifflerCursorLine Error
 highlight default link NifflerMarkedLine Todo

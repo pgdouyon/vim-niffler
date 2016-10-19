@@ -116,6 +116,9 @@ command and filter a list of matching tags.
     - Prompt string for input
     - The placeholder %s is replaced with the prompt text (optional)
     - i.e. `let g:niffler_prompt = '%s $ '`
+- `g:niffler_marked_indicator`
+    - Indicator which is used to mark selected entries
+    - i.e. `let g:niffler_marked_indicator = 'x '`
 
 
 Requirements

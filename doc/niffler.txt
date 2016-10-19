@@ -130,6 +130,12 @@ g:niffler_prompt                             *g:niffler_prompt*
 <
                         The default value is "> "
 
+g:niffler_marked_indicator                   *g:niffler_marked_indicator*
+                        Indicator which is used to mark selected entries. >
+                            let g:niffler_marked_indicator = "x "
+<
+                        The default value is "* "
+
 
 
 ==============================================================================

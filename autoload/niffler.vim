@@ -11,8 +11,6 @@ set cpoptions&vim
 " ======================================================================
 " Script Local Config
 " ======================================================================
-let s:marked_indicator = "* "
-
 let s:autoload_folder = expand("<sfile>:p:h")
 let s:mru_cache_file = s:autoload_folder."/niffler_mru_list.txt"
 if !filereadable(s:mru_cache_file)
@@ -558,11 +556,11 @@ function! s:mark_selection(prompt)
     let current_selection = s:cleanup_selection(getline("."))
     let index = index(b:niffler.marked_selections, current_selection)
     if index < 0
-        execute printf("normal! I%s", s:marked_indicator)
+        execute printf("normal! I%s", g:niffler_marked_indicator)
         call s:highlight_mark(current_selection)
         call add(b:niffler.marked_selections, current_selection)
     else
-        execute printf("normal! 0%dx", strchars(s:marked_indicator))
+        execute printf("normal! 0%dx", strchars(g:niffler_marked_indicator))
         call remove(b:niffler.marked_selections, index)
     endif
     return a:prompt
@@ -570,7 +568,7 @@ endfunction
 
 
 function! s:cleanup_selection(selection)
-    let marked_regex = '\V\^' . escape(s:marked_indicator, '\')
+    let marked_regex = '\V\^' . escape(g:niffler_marked_indicator, '\')
     let trimmed_selection = substitute(a:selection, '\s*$', '', '')
     let is_marked = (trimmed_selection =~# marked_regex)
     if is_marked
@@ -581,7 +579,7 @@ endfunction
 
 
 function! s:highlight_mark(selection)
-    let match_pattern = printf('\V\^%s%s \+\$', escape(s:marked_indicator, '\'), escape(a:selection, '\'))
+    let match_pattern = printf('\V\^%s%s \+\$', escape(g:niffler_marked_indicator, '\'), escape(a:selection, '\'))
     call matchadd('NifflerMarkedLine', match_pattern, 0)
 endfunction
 
@@ -704,7 +702,7 @@ function! s:refresh_marks()
         let selection = s:cleanup_selection(visible_candidate_list[lnum - 1])
         let is_marked = (index(b:niffler.marked_selections, selection) >= 0)
         if is_marked
-            execute printf("%d normal! I%s", lnum, s:marked_indicator)
+            execute printf("%d normal! I%s", lnum, g:niffler_marked_indicator)
             call add(refreshed_marked_selections, selection)
         endif
     endfor
