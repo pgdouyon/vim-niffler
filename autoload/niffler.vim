@@ -97,7 +97,8 @@ endfunction
 
 function! s:taglist_current_buffer()
     let current_buffer = expand("%:p")
-    let taglist = systemlist(printf("ctags -f - %s", current_buffer))
+    let substitution_pattern = '\V' . escape(current_buffer, '\')
+    let taglist = map(systemlist(printf("ctags --fields=kt -f - %s", current_buffer)), 'substitute(v:val, substitution_pattern, "", "g")')
 
     let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "\\"))'
     let parse_tag_filename = string(expand("%:p"))
