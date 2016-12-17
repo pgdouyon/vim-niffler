@@ -169,7 +169,7 @@ function! s:open_file(selection) dict
     let save_wd = getcwd()
     call s:lchdir(self.working_directory)
     let selection = fnamemodify(a:selection, ":p")
-    let open_cmd = bufexists(selection) ? "buffer" : "edit"
+    let open_cmd = buflisted(selection) ? "buffer" : "edit"
     execute "silent" open_cmd fnameescape(selection)
     call s:lchdir(save_wd)
 endfunction
@@ -178,7 +178,7 @@ endfunction
 function! s:open_tag(selection) dict
     let tag_excmd = map([a:selection], self.parse_tag_excmd)[0]
     let tag_filename = map([a:selection], self.parse_tag_filename)[0]
-    let open_cmd = bufexists(tag_filename) ? "buffer" : "edit"
+    let open_cmd = buflisted(tag_filename) ? "buffer" : "edit"
     mark '
     execute "silent" open_cmd fnameescape(tag_filename)
     execute "silent keeppatterns" tag_excmd
@@ -519,10 +519,11 @@ function! s:cleanup(saved_state)
 endfunction
 
 
-function! s:try_visit(bufnr, ...)
+function! s:try_visit(bufnr, ...) abort
     if a:bufnr != bufnr("%") && bufexists(a:bufnr)
         let noautocmd = bufloaded(a:bufnr) ? "noautocmd" : ""
         execute "silent" noautocmd join(a:000, " ") "keepjumps buffer" a:bufnr
+        call setbufvar(a:bufnr, 'buflisted', 1)
     endif
 endfunction
 
