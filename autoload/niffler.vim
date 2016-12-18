@@ -185,6 +185,7 @@ function! s:open_tag(selection) dict
     let tag_filename = map([a:selection], self.parse_tag_filename)[0]
     let open_cmd = buflisted(tag_filename) ? "buffer" : "edit"
     mark '
+    call niffler#tag#push()
     execute "silent keepjumps" open_cmd fnameescape(tag_filename)
     execute "silent keeppatterns keepjumps" tag_excmd
     if (&foldopen =~# 'tag') || (&foldopen =~# 'all')
@@ -467,8 +468,11 @@ function! s:open_selection(prompt, create_window)
     let current_selection = s:cleanup_selection(getline("."))
     call s:close_niffler()
 
+    let original_winnr = winnr()
+    let original_tabnr = tabpagenr()
     let alternate_buffer = bufnr("%")
     execute a:create_window
+    call niffler#tag#inherit_tag_stack(original_tabnr, original_winnr)
     for selection in niffler.marked_selections
         call s:sink(niffler, selection)
     endfor

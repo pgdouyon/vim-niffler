@@ -118,7 +118,7 @@ g:niffler_conceal_tags_fullpath              *g:niffler_conceal_tags_fullpath*
 <
                         The default value is 1
 
-g:niffler_prompt                             *g:niffler_prompt*
+g:niffler_prompt                                            *g:niffler_prompt*
                         The prompt which is displayed before the input.
                         The placeholder %s in the prompt string is replaced
                         with the prompt text (optional). For example for the
@@ -130,12 +130,20 @@ g:niffler_prompt                             *g:niffler_prompt*
 <
                         The default value is "> "
 
-g:niffler_marked_indicator                   *g:niffler_marked_indicator*
+g:niffler_marked_indicator                        *g:niffler_marked_indicator*
                         Indicator which is used to mark selected entries. >
                             let g:niffler_marked_indicator = "x "
 <
                         The default value is "* "
 
+g:niffler_tag_mappings                                *g:niffler_tag_mappings*
+                        Set this flag to re-map the keybindings associated with
+                        tag navigation to allow for better integration with
+                        Niffler's internal tag stack.  Affected keybindings are:
+                        |CTRL-]|, |CTRL-T|, |g]|, and |g_CTRL-]|. >
+                            let g:niffler_tag_mappings = 1
+<
+                        The default value is 0
 
 
 ==============================================================================
@@ -165,22 +173,33 @@ Commands                                                    *niffler-commands*
                         Pass a % to the command to only search for tags in the
                         current buffer.
 
+                        Note: Setting the |g:niffler_tag_mappings| option is
+                        recommended if you will be using this command
+                        frequently.
+
 :NifflerTselect [identifier]                                 *:NifflerTselect*
                         Perform fuzzy tag search on all tags that match
                         [ident].  If no argument is given use the current word
                         under the cursor.
 
-                        Can be used to replace the builtin |:tselect| command. >
-                            nnoremap <silent> g] :NifflerTselect<CR>
-<
+                        Can be used to replace the builtin |:tselect| command.
+
+                        Note: Setting the |g:niffler_tag_mappings| option is
+                        recommended if you will be using this command
+                        frequently. It provides a convenience mapping to the
+                        builtin |g]| as well as better tag stack integration.
 
 :NifflerTjump [identifier]                                     *:NifflerTjump*
                         Like |:NifflerTselect|, but jump to the tag directly
                         when there is only one match.
 
-                        Can be used to replace the builtin |:tjump| command. >
-                            nnoremap <silent> g<C-]> :NifflerTjump<CR>
-<
+                        Can be used to replace the builtin |:tjump| command.
+
+                        Note: Setting the |g:niffler_tag_mappings| option is
+                        recommended if you will be using this command
+                        frequently. It provides a convenience mapping to the
+                        builtin |g_CTRL-]| as well as better tag stack
+                        integration.
 
 
 ==============================================================================

@@ -36,6 +36,7 @@ call s:set_default("g:niffler_user_command", '""')
 call s:set_default("g:niffler_conceal_tags_fullpath", '1')
 call s:set_default("g:niffler_prompt", '"> "')
 call s:set_default("g:niffler_marked_indicator", '"* "')
+call s:set_default("g:niffler_tag_mappings", '0')
 
 highlight default link NifflerCursorLine Error
 highlight default link NifflerMarkedLine Todo
@@ -51,6 +52,22 @@ command! -nargs=0 NifflerBuffer call niffler#buffer()
 command! -nargs=? NifflerTags call niffler#tags(<q-args> ==# "%")
 command! -nargs=? NifflerTselect call niffler#tselect(<q-args>)
 command! -nargs=? NifflerTjump call niffler#tjump(<q-args>)
+
+
+" ======================================================================
+" Mappings
+" ======================================================================
+
+nnoremap <silent> <Plug>NifflerTagJump :<C-U>call niffler#tag#jump()<CR>
+nnoremap <silent> <Plug>NifflerTagPop  :<C-U>call niffler#tag#pop()<CR>
+nnoremap <silent> <Plug>NifflerTselect :<C-U>NifflerTselect<CR>
+nnoremap <silent> <Plug>NifflerTjump   :<C-U>NifflerTjump<CR>
+if g:niffler_tag_mappings
+    nmap <C-]>  <Plug>NifflerTagJump
+    nmap <C-T>  <Plug>NifflerTagPop
+    nmap g]     <Plug>NifflerTselect
+    nmap g<C-]> <Plug>NifflerTjump
+endif
 
 
 " ======================================================================
