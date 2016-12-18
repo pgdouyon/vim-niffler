@@ -129,9 +129,14 @@ function! niffler#tselect(identifier)
         return
     endif
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
-    redir => tselect_out
-    execute "silent! tselect" identifier
-    redir END
+    try
+        redir => tselect_out
+        execute "silent tselect" identifier
+        redir END
+    catch
+        call niffler#utils#echo_error(substitute(v:exception, '^[^:]*:', '', ''))
+        return
+    endtry
 
     let tselect_lines_sanitized = join(split(tselect_out, "\n")[1:-2], "\n")
     let tselect_candidates = []
