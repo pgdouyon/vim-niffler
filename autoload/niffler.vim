@@ -147,7 +147,7 @@ function! niffler#tselect(identifier)
         let candidate = join([file, tag_location], "\t")
         call add(tselect_candidates, candidate)
     endfor
-    execute len(tselect_candidates) "split"
+    execute min([len(tselect_candidates), 10]) "split"
     let parse_tag_excmd = '"/^\\s*\\V" . escape(matchstr(v:val, ''^.\{-\}\\\@<!\s\+\zs.*''), "\\")'
     let parse_tag_filename = 'substitute(split(v:val, ''\\\@<!\s\+'')[0], "\\\\ ", " ", "g")'
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
