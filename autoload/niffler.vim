@@ -58,7 +58,7 @@ endfunction
 function! niffler#tags(use_current_buffer)
     if !executable("ctags") || !executable("sed") || !executable("cut")
         let error_message = "[NifflerTags] - one of the following required executables not found: [ctags, sed, cut]."
-        call s:echo_error(error_message)
+        call niffler#utils#echo_error(error_message)
         return
     endif
     if a:use_current_buffer
@@ -125,7 +125,7 @@ endfunction
 function! niffler#tselect(identifier)
     if !executable("sed") || !executable("cut")
         let error_message = "[NifflerTselect] - one of the following required executables not found: [sed, cut]."
-        call s:echo_error(error_message)
+        call niffler#utils#echo_error(error_message)
         return
     endif
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
@@ -191,7 +191,7 @@ endfunction
 function! niffler#custom(args)
     if !has_key(a:args, "source")
         let error_message = "[NifflerCustom] - 'source' key not found.  Unable to create candidate list."
-        call s:echo_error(error_message)
+        call niffler#utils#echo_error(error_message)
         return
     endif
     let save_wd = getcwd()
@@ -265,10 +265,10 @@ endfunction
 
 function! s:niffler_setup(candidate_list, options) abort
     if !executable("grep")
-        call s:echo_error("[Niffler] - `grep` executable not found. Unable to filter candidate list.")
+        call niffler#utils#echo_error("[Niffler] - `grep` executable not found. Unable to filter candidate list.")
         call s:cleanup(a:options)
     elseif empty(a:candidate_list)
-        call s:echo_error("[Niffler] - No results found. Unable to create candidate list.")
+        call niffler#utils#echo_error("[Niffler] - No results found. Unable to create candidate list.")
         call s:cleanup(a:options)
     else
         try
@@ -285,7 +285,7 @@ function! s:niffler_setup(candidate_list, options) abort
             let b:niffler.isactive = 1
             call s:display(a:candidate_list[0:b:niffler.candidate_limit - 1])
         catch
-            call s:echo_error(substitute(v:exception, '^[^:]*:', '', ''))
+            call niffler#utils#echo_error(substitute(v:exception, '^[^:]*:', '', ''))
             call s:cleanup(a:options)
         endtry
     endif
@@ -322,11 +322,6 @@ function! s:set_niffler_cursorline()
     let save_matches = filter(getmatches(), 'has_key(v:val, "pattern")')
     let b:niffler.save_matches = save_matches | call clearmatches()
     let b:niffler.highlight_group = matchadd("NifflerCursorLine", '^.*\%#.*$', 10)
-endfunction
-
-
-function! s:echo_error(error_message)
-    echohl ErrorMsg | echomsg a:error_message | echohl None
 endfunction
 
 
@@ -472,7 +467,7 @@ function! s:open_selection(prompt, create_window)
     for selection in niffler.marked_selections
         call s:sink(niffler, selection)
     endfor
-    call s:try_visit(alternate_buffer)
+    call niffler#utils#try_visit(alternate_buffer)
     call s:sink(niffler, current_selection)
     execute command
 endfunction
@@ -493,7 +488,7 @@ function! s:close_niffler(...)
     endif
     unlet b:niffler.isactive
     let niffler_options = b:niffler
-    call s:try_visit(b:niffler.origin_buffer, "keepalt")
+    call niffler#utils#try_visit(b:niffler.origin_buffer, "keepalt")
     call s:cleanup(niffler_options)
     redraw | echo
     " above command is needed because Vim leaves the prompt on screen when there are no buffers open
@@ -516,15 +511,6 @@ function! s:cleanup(saved_state)
         wincmd c
     endif
     call setpos(".", save_cursor)
-endfunction
-
-
-function! s:try_visit(bufnr, ...) abort
-    if a:bufnr != bufnr("%") && bufexists(a:bufnr)
-        let noautocmd = bufloaded(a:bufnr) ? "noautocmd" : ""
-        execute "silent" noautocmd join(a:000, " ") "keepjumps buffer" a:bufnr
-        call setbufvar(a:bufnr, 'buflisted', 1)
-    endif
 endfunction
 
 
