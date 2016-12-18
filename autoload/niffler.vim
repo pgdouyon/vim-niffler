@@ -180,8 +180,8 @@ function! s:open_tag(selection) dict
     let tag_filename = map([a:selection], self.parse_tag_filename)[0]
     let open_cmd = buflisted(tag_filename) ? "buffer" : "edit"
     mark '
-    execute "silent" open_cmd fnameescape(tag_filename)
-    execute "silent keeppatterns" tag_excmd
+    execute "silent keepjumps" open_cmd fnameescape(tag_filename)
+    execute "silent keeppatterns keepjumps" tag_excmd
     if (&foldopen =~# 'tag') || (&foldopen =~# 'all')
         normal! zv
     endif
@@ -299,13 +299,13 @@ function! s:open_niffler_buffer() abort
     if origin_buffer == bufnr("%")
         " origin buffer was a new/unnamed buffer created with :new or :tabe,
         " create a new one to replace the one Niffler usurped
-        enew | buffer #
+        keepjumps enew | keepjumps buffer #
         let origin_buffer = bufnr("#")
     endif
     let b:niffler = {}
     let b:niffler.origin_buffer = origin_buffer
     let b:niffler.save_cursor = save_cursor
-    normal! gg
+    keepjumps normal! gg
 endfunction
 
 
@@ -653,11 +653,11 @@ endfunction
 
 
 function! s:display(candidate_list)
-    silent! 1,$ delete _
+    keepjumps silent! 1,$ delete _
     let candidate_list = s:preprocess_candidate_list(a:candidate_list)
     call map(candidate_list, 'substitute(v:val, "$", repeat(" ", winwidth(0)), "")')
     call append(0, candidate_list)
-    $ delete _ | call cursor(1, 1)
+    keepjumps $ delete _ | call cursor(1, 1)
 endfunction
 
 
