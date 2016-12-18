@@ -8,8 +8,8 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 setlocal buftype=nofile
-setlocal bufhidden=wipe
-setlocal buflisted noreadonly noswapfile
+setlocal bufhidden=delete
+setlocal noreadonly noswapfile
 
 setlocal nofoldenable
 setlocal nowrap
