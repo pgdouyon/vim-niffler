@@ -606,7 +606,7 @@ function! s:filter_candidate_list(query)
     endif
     let sanitized_query = s:sanitize_query(a:query)
     let grep_cmd = s:translate_query_to_grep_cmd(sanitized_query)
-    let candidate_list = systemlist(grep_cmd, b:niffler.candidate_list)
+    silent! let candidate_list = systemlist(grep_cmd, b:niffler.candidate_list)
     if len(candidate_list) < b:niffler.candidate_limit
         let b:niffler.candidate_list = candidate_list
     endif
