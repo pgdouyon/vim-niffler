@@ -76,8 +76,8 @@ endif
 
 augroup niffler
     autocmd!
-    autocmd BufLeave,VimLeavePre * call niffler#update_mru_list(expand("%:p"))
-    autocmd CursorHold,VimLeave * call niffler#write_mru_cache_file()
+    autocmd BufLeave,VimLeavePre * call niffler#mru#add(expand("%:p"))
+    autocmd CursorHold,VimLeave * call niffler#mru#save_file()
 augroup END
 
 let &cpoptions = s:save_cpo

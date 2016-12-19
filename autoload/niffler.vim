@@ -9,17 +9,6 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 " ======================================================================
-" Script Local Config
-" ======================================================================
-let s:autoload_folder = expand("<sfile>:p:h")
-let s:mru_cache_file = s:autoload_folder."/niffler_mru_list.txt"
-if !filereadable(s:mru_cache_file)
-    call system("touch ".s:mru_cache_file)
-endif
-let s:mru_list = readfile(s:mru_cache_file)
-
-
-" ======================================================================
 " Plugin Code
 " ======================================================================
 function! niffler#niffler(args)
@@ -40,8 +29,8 @@ endfunction
 
 function! niffler#mru()
     let niffler_options = {"sink": function("s:open_file")}
-    call s:prune_mru_list()
-    call s:niffler_setup(reverse(copy(s:mru_list)), niffler_options)
+    call niffler#mru#update()
+    call s:niffler_setup(reverse(copy(niffler#mru#list())), niffler_options)
     call s:keypress_event_loop('Mru')
 endfunction
 
@@ -281,7 +270,7 @@ function! s:niffler_setup(candidate_list, options) abort
             call s:open_niffler_buffer()
             call s:set_niffler_options()
             call s:set_niffler_cursorline()
-            call s:prune_mru_list()
+            call niffler#mru#update()
             call extend(b:niffler, a:options)
             let b:niffler.candidate_list_original = a:candidate_list
             let b:niffler.candidate_list = a:candidate_list
@@ -671,9 +660,9 @@ endfunction
 
 function! s:sort_by_mru(candidate_list)
     let candidate_set = s:get_candidate_set(a:candidate_list)
-    for mru in s:mru_list
+    for file in niffler#mru#list()
         let prefix_directory = escape(getcwd(), '\') . '/'
-        let mru_candidate = substitute(mru, '\V\^'.prefix_directory, '', '')
+        let mru_candidate = substitute(file, '\V\^'.prefix_directory, '', '')
         if has_key(candidate_set, mru_candidate)
             let index = index(a:candidate_list, mru_candidate)
             call insert(a:candidate_list, remove(a:candidate_list, index))
@@ -718,55 +707,6 @@ function! s:parse_command(prompt)
     let command = get(split(a:prompt, '\\\@<!:\ze[^:]*$'), 1, "")
     return command
 endfunction
-
-
-" ======================================================================
-" MRU Handlers
-" ======================================================================
-
-function! niffler#update_mru_list(fname)
-    let ignore_buftypes = ['nofile', 'quickfix', 'help', 'terminal']
-    let ignore_filetypes = ['gitcommit']
-    call extend(ignore_buftypes, g:niffler_mru_ignore_buftypes)
-    call extend(ignore_filetypes, g:niffler_mru_ignore_filetypes)
-
-    let ignore_buftype = (index(ignore_buftypes, &l:buftype) != -1)
-    let ignore_filetype = (index(ignore_filetypes, &l:filetype) != -1)
-    let unlisted = (&l:buflisted == 0)
-    let temp = (a:fname =~# '/te\?mp/')
-    let vcs_file = (a:fname =~# '/\.\%(git\|svn\|hg\)/')
-    let empty_fname = empty(a:fname)
-    if !(ignore_buftype || ignore_filetype || unlisted || temp || vcs_file || empty_fname)
-        call add(s:mru_list, a:fname)
-    endif
-endfunction
-
-
-function! s:prune_mru_list()
-    let size = len(s:mru_list)
-    let unique_mru_files = {}
-    for i in range(size - 1, 0, -1)
-        let file = s:mru_list[i]
-        if has_key(unique_mru_files, file)
-            call remove(s:mru_list, i)
-        elseif !empty(file)
-            let unique_mru_files[file] = 0
-        endif
-    endfor
-
-    let size = len(s:mru_list)
-    if size > g:niffler_mru_max_history
-        let slice_index = size - g:niffler_mru_max_history
-        call remove(s:mru_list, 0, slice_index - 1)
-    endif
-endfunction
-
-
-function! niffler#write_mru_cache_file()
-    call s:prune_mru_list()
-    call writefile(s:mru_list, s:mru_cache_file)
-endfunction
-
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
