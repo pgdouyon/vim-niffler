@@ -77,7 +77,7 @@ endif
 augroup niffler
     autocmd!
     autocmd BufLeave,VimLeavePre * call niffler#mru#add(expand("%:p"))
-    autocmd CursorHold,VimLeave * call niffler#mru#save_file()
+    autocmd FocusLost,VimLeave * call niffler#mru#save_file()
 augroup END
 
 let &cpoptions = s:save_cpo
