@@ -94,13 +94,15 @@ function! niffler#mru#add(fname)
     call extend(ignore_buftypes, g:niffler_mru_ignore_buftypes)
     call extend(ignore_filetypes, g:niffler_mru_ignore_filetypes)
 
-    let ignore_buftype = (index(ignore_buftypes, &l:buftype) != -1)
-    let ignore_filetype = (index(ignore_filetypes, &l:filetype) != -1)
-    let unlisted = (&l:buflisted == 0)
+    let buftype = getbufvar(bufnr(a:fname), "&l:buftype")
+    let filetype = getbufvar(bufnr(a:fname), "&l:filetype")
+    let buflisted = getbufvar(bufnr(a:fname), "&l:buflisted")
+
+    let ignore_buftype = (index(ignore_buftypes, buftype) != -1)
+    let ignore_filetype = (index(ignore_filetypes, filetype) != -1)
     let temp = (a:fname =~# '/te\?mp/')
     let vcs_file = (a:fname =~# '/\.\%(git\|svn\|hg\)/')
-    let empty_fname = empty(a:fname)
-    if !(ignore_buftype || ignore_filetype || unlisted || temp || vcs_file || empty_fname)
+    if !(ignore_buftype || ignore_filetype || !buflisted || temp || vcs_file || empty(a:fname))
         call s:update_mru_entry(s:mru, a:fname, s:timestamp())
     endif
 endfunction
