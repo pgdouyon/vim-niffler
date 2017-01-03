@@ -152,6 +152,7 @@ function! niffler#tjump(identifier)
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
     let matching_tags = taglist("^".identifier."$")
     if len(matching_tags) == 1
+        call niffler#tag#push()
         execute "tag" identifier
     else
         call niffler#tselect(identifier)
