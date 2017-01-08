@@ -291,7 +291,7 @@ endfunction
 function! s:open_niffler_buffer() abort
     let save_cursor = getpos(".")
     let origin_buffer = bufnr("%")
-    silent noautocmd keepalt keepjumps edit __Niffler__
+    keepalt keepjumps edit __Niffler__
     if origin_buffer == bufnr("%")
         " origin buffer was a new/unnamed buffer created with :new or :tabe,
         " create a new one to replace the one Niffler usurped
@@ -309,7 +309,6 @@ function! s:set_niffler_options()
     let is_hlsearch_suspended = (&hlsearch == 1) && (v:hlsearch == 0)
     let b:niffler.set_hlsearch = &hlsearch ? "set hlsearch" : "set nohlsearch"
     let b:niffler.nohlsearch = is_hlsearch_suspended ? "nohlsearch" : ""
-    set filetype=niffler
     set nohlsearch
 endfunction
 

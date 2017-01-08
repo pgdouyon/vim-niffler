@@ -9,6 +9,7 @@ set cpoptions&vim
 
 setlocal buftype=nofile
 setlocal bufhidden=delete
+setlocal nobuflisted
 setlocal noreadonly noswapfile
 
 setlocal nofoldenable
