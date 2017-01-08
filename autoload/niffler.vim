@@ -291,7 +291,7 @@ endfunction
 function! s:open_niffler_buffer() abort
     let save_cursor = getpos(".")
     let origin_buffer = bufnr("%")
-    keepalt keepjumps edit __Niffler__
+    silent keepalt keepjumps edit __Niffler__
     if origin_buffer == bufnr("%")
         " origin buffer was a new/unnamed buffer created with :new or :tabe,
         " create a new one to replace the one Niffler usurped
