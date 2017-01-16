@@ -465,7 +465,7 @@ function! s:open_selection(prompt, create_window)
     for selection in niffler.marked_selections
         call s:sink(niffler, selection)
     endfor
-    call niffler#utils#try_visit(alternate_buffer)
+    call niffler#utils#try_visit(alternate_buffer, "noautocmd")
     call s:sink(niffler, current_selection)
     execute command
 endfunction
