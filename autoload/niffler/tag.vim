@@ -5,7 +5,11 @@ set cpoptions&vim
 function! niffler#tag#tag_stack(...)
     let tabnr = a:0 ? a:1 : tabpagenr()
     let winnr = a:0 ? a:2 : winnr()
-    return gettabwinvar(tabnr, winnr, "niffler_tag_stack", [])
+    let tag_stack = gettabwinvar(tabnr, winnr, "niffler_tag_stack", [])
+    if empty(tag_stack)
+        call settabwinvar(tabnr, winnr, "niffler_tag_stack", tag_stack)
+    endif
+    return tag_stack
 endfunction
 
 
