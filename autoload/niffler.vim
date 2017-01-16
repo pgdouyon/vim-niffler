@@ -262,10 +262,10 @@ endfunction
 function! s:niffler_setup(candidate_list, options) abort
     if !executable("grep")
         call niffler#utils#echo_error("[Niffler] - `grep` executable not found. Unable to filter candidate list.")
-        call s:cleanup(a:options)
+        call s:cleanup_window_state(a:options)
     elseif empty(a:candidate_list)
         call niffler#utils#echo_error("[Niffler] - No results found. Unable to create candidate list.")
-        call s:cleanup(a:options)
+        call s:cleanup_window_state(a:options)
     else
         try
             call s:open_niffler_buffer()
@@ -282,7 +282,12 @@ function! s:niffler_setup(candidate_list, options) abort
             call s:display(a:candidate_list[0:b:niffler.candidate_limit - 1])
         catch
             call niffler#utils#echo_error(substitute(v:exception, '^[^:]*:', '', ''))
-            call s:cleanup(a:options)
+            if exists("b:niffler") && has_key(b:niffler, "origin_buffer")
+                call extend(b:niffler, a:options)
+                call s:cleanup_buffer_state(b:niffler)
+                call niffler#utils#try_visit(b:niffler.origin_buffer, "keepalt")
+            endif
+            call s:cleanup_window_state(a:options)
         endtry
     endif
 endfunction
@@ -486,16 +491,15 @@ function! s:close_niffler(...)
     endif
     unlet b:niffler.isactive
     let niffler_options = b:niffler
-    call niffler#utils#try_visit(b:niffler.origin_buffer, "keepalt")
-    call s:cleanup(niffler_options)
+    call s:cleanup_buffer_state(niffler_options)
+    call niffler#utils#try_visit(niffler_options.origin_buffer, "keepalt")
+    call s:cleanup_window_state(niffler_options)
     redraw | echo
     " above command is needed because Vim leaves the prompt on screen when there are no buffers open
 endfunction
 
 
-function! s:cleanup(saved_state)
-    let save_wd = get(a:saved_state, "save_wd", getcwd())
-    let save_cursor = get(a:saved_state, "save_cursor", getpos("."))
+function! s:cleanup_buffer_state(saved_state)
     if has_key(a:saved_state, "highlight_group")
         call matchdelete(a:saved_state.highlight_group)
     endif
@@ -504,11 +508,19 @@ function! s:cleanup(saved_state)
     endif
     execute get(a:saved_state, "set_hlsearch", "")
     execute get(a:saved_state, "nohlsearch", "")
-    call s:lchdir(save_wd)
+endfunction
+
+
+function! s:cleanup_window_state(saved_state)
+    if has_key(a:saved_state, "save_wd")
+        call s:lchdir(get(a:saved_state, "save_wd"))
+    endif
     if get(a:saved_state, "preview", 0)
         wincmd c
     endif
-    call setpos(".", save_cursor)
+    if has_key(a:saved_state, "save_cursor")
+        call setpos(".", get(a:saved_state, "save_cursor"))
+    endif
 endfunction
 
 
