@@ -2,6 +2,11 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 
+function! niffler#utils#empty(value)
+    return empty(a:value) || (type(a:value) == type("") && match(a:value, '\S') < 0)
+endfunction
+
+
 function! niffler#utils#echo_error(error_message)
     echohl ErrorMsg | echomsg a:error_message | echohl None
 endfunction

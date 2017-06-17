@@ -628,7 +628,7 @@ endfunction
 
 
 function! s:sanitize_query(query)
-    let query = empty(a:query) ? g:niffler_fuzzy_char : a:query
+    let query = niffler#utils#empty(a:query) ? g:niffler_fuzzy_char : a:query
     let fuzzy_char = escape(g:niffler_fuzzy_char, '\')
     let special_chars = substitute('.*[]\', '\V'.fuzzy_char, '', '')
     let sanitized_query = escape(query, special_chars)
