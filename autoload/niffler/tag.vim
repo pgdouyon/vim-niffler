@@ -19,8 +19,12 @@ endfunction
 
 
 function! niffler#tag#jump()
-    call niffler#tag#push()
-    execute "normal! \<C-]>"
+    try
+        call niffler#tag#push()
+        execute "normal! \<C-]>"
+    catch
+        call niffler#utils#echo_error(v:errmsg)
+    endtry
 endfunction
 
 
