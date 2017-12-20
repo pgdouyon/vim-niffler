@@ -117,6 +117,7 @@ function! niffler#tselect(identifier)
         call niffler#utils#echo_error(error_message)
         return
     endif
+    let tselect_out = ""
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
     try
         redir => tselect_out
