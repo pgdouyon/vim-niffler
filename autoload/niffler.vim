@@ -175,13 +175,20 @@ function! s:open_tag(selection) dict
     let tag_excmd = map([a:selection], self.parse_tag_excmd)[0]
     let tag_filename = map([a:selection], self.parse_tag_filename)[0]
     let open_cmd = buflisted(tag_filename) ? "buffer" : "edit"
+    let latest_jump = getpos("''")
     mark '
     call niffler#tag#push()
-    execute "silent keepjumps" open_cmd fnameescape(tag_filename)
-    execute "silent keeppatterns keepjumps" tag_excmd
-    if (&foldopen =~# 'tag') || (&foldopen =~# 'all')
-        normal! zv
-    endif
+    try
+        execute "silent keepjumps" open_cmd fnameescape(tag_filename)
+        execute "silent keeppatterns keepjumps" tag_excmd
+        if (&foldopen =~# 'tag') || (&foldopen =~# 'all')
+            normal! zv
+        endif
+    catch
+        call niffler#utils#echo_error(substitute(v:exception, '^[^:]*:', '', ''))
+        call niffler#tag#pop()
+        call setpos("''", latest_jump)
+    endtry
 endfunction
 
 
