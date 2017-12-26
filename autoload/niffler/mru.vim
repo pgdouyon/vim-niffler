@@ -117,9 +117,11 @@ endfunction
 
 function! niffler#mru#save_file()
     let merged_mru_records = s:merge_mru_records(s:mru, s:parse_mru_file())
-    let min_timestamp = s:most_recent_timestamps(merged_mru_records)[0]
-    let serialized_entries = s:serialize(merged_mru_records, min_timestamp)
-    call writefile(serialized_entries, s:mru_cache_file)
+    let min_timestamp = get(s:most_recent_timestamps(merged_mru_records), 0, '')
+    if !empty(min_timestamp)
+        let serialized_entries = s:serialize(merged_mru_records, min_timestamp)
+        call writefile(serialized_entries, s:mru_cache_file)
+    endif
 endfunction
 
 
