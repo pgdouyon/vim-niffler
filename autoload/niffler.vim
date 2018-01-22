@@ -36,7 +36,12 @@ endfunction
 
 
 function! niffler#buffer()
-    redir => buffers | silent ls | redir END
+    try
+        let buffers = niffler#utils#redir("ls")
+    catch
+        call niffler#utils#echo_error(v:exception)
+        return
+    endtry
     let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
     let niffler_options = {"sink": function("s:open_file"), "display_preprocessor": function("s:sort_by_mru")}
     call s:niffler_setup(buflist, niffler_options)
@@ -117,14 +122,11 @@ function! niffler#tselect(identifier)
         call niffler#utils#echo_error(error_message)
         return
     endif
-    let tselect_out = ""
     let identifier = empty(a:identifier) ? expand("<cword>") : a:identifier
     try
-        redir => tselect_out
-        execute "silent tselect" identifier
-        redir END
+        let tselect_out = niffler#utils#redir("tselect " . identifier)
     catch
-        call niffler#utils#echo_error(substitute(v:exception, '^[^:]*:', '', ''))
+        call niffler#utils#echo_error(v:exception)
         return
     endtry
 

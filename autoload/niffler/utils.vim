@@ -12,6 +12,22 @@ function! niffler#utils#echo_error(error_message)
 endfunction
 
 
+function! niffler#utils#redir(command)
+    redir => output
+    try
+        execute "silent" a:command
+    catch
+        let exception = substitute(v:exception, '^[^:]*:', '', '')
+    endtry
+    redir END
+
+    if !exists("exception")
+        return output
+    endif
+    throw exception
+endfunction
+
+
 function! niffler#utils#try_visit(bufnr, ...) abort
     if a:bufnr != bufnr("%") && bufexists(a:bufnr)
         execute "silent" join(a:000, " ") "keepjumps buffer" a:bufnr
