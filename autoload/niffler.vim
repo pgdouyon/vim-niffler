@@ -37,12 +37,18 @@ endfunction
 
 function! niffler#buffer()
     try
-        let buffers = niffler#utils#redir("ls")
+        if exists("*getbufinfo")
+            let bufinfo = getbufinfo({ 'buflisted': v:true })
+            let buflist = map(bufinfo, 'fnamemodify(v:val.name, ":.")')
+        else
+            let ls_output = niffler#utils#redir("ls")
+            let buflist = map(split(ls_output, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
+        endif
     catch
         call niffler#utils#echo_error(v:exception)
         return
     endtry
-    let buflist = map(split(buffers, "\n"), 'matchstr(v:val, ''"\zs[^"]\+\ze"'')')
+
     let niffler_options = {"sink": function("s:open_file"), "display_preprocessor": function("s:sort_by_mru")}
     call s:niffler_setup(buflist, niffler_options)
     call s:keypress_event_loop('Buffers')
@@ -166,9 +172,8 @@ endfunction
 function! s:open_file(selection) dict
     let save_wd = getcwd()
     call s:lchdir(self.working_directory)
-    let selection = fnamemodify(a:selection, ":p")
-    let open_cmd = buflisted(selection) ? "buffer" : "edit"
-    execute "silent" open_cmd fnameescape(selection)
+    let open_cmd = buflisted(a:selection) ? "buffer" : "edit"
+    execute "silent" open_cmd fnameescape(a:selection)
     call s:lchdir(save_wd)
 endfunction
 
