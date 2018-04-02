@@ -87,7 +87,7 @@ function! s:taglist()
         let taglist += systemlist(printf("grep -v '^!_TAG_' %s", tagfile))
     endfor
 
-    let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "\\"))'
+    let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "/\\"))'
     let parse_tag_filename = 'substitute(matchstr(v:val, ''^\S*\s*\zs.\{-\}\ze\\\@<!\s''), "\\\\ ", " ", "g")'
     let display_preprocessor_fmt_string = 'systemlist("sed %s | cut -f1-3 | column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n")'
     let display_preprocessor = printf(display_preprocessor_fmt_string, s:sed_arguments())
@@ -100,7 +100,7 @@ function! s:taglist_current_buffer()
     let substitution_pattern = '\V' . escape(current_buffer, '\')
     let taglist = map(systemlist(printf("ctags --fields=kt -f - %s", current_buffer)), 'substitute(v:val, substitution_pattern, "", "g")')
 
-    let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "\\"))'
+    let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*\zs.*''), "/\\"))'
     let parse_tag_filename = string(expand("%:p"))
     let display_preprocessor_fmt_string = 'systemlist("sed -e ''%s'' | cut -f1,3 | column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n")'
     let display_preprocessor = printf(display_preprocessor_fmt_string, escape(s:trim_pattern_noise(), '"\'))
@@ -146,7 +146,7 @@ function! niffler#tselect(identifier)
         call add(tselect_candidates, candidate)
     endfor
     execute min([len(tselect_candidates), 10]) "split"
-    let parse_tag_excmd = '"/^\\s*\\V" . escape(matchstr(v:val, ''^.\{-\}\\\@<!\s\+\zs.*''), "\\")'
+    let parse_tag_excmd = '"/^\\s*\\V" . escape(matchstr(v:val, ''^.\{-\}\\\@<!\s\+\zs.*''), "/\\")'
     let parse_tag_filename = 'substitute(split(v:val, ''\\\@<!\s\+'')[0], "\\\\ ", " ", "g")'
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
     let niffler_options = {"preview": 1, "sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
