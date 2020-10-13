@@ -362,10 +362,14 @@ function! s:keypress_event_loop(prompt_text)
     let prompt = ""
     while s:is_active()
         call s:redraw_prompt(a:prompt_text, prompt)
-        let nr = getchar()
-        let char = !type(nr) ? nr2char(nr) : nr
+        silent! let nr = getchar()
+        let char = type(nr) == 0 ? nr2char(nr) : nr
         if (char =~# '\p') && (type(nr) == 0)
-            let prompt = s:update_prompt(prompt, char)
+            let input = char
+            while s:character_input_pending()
+                let input .= nr2char(getchar(0))
+            endwhile
+            let prompt = s:update_prompt(prompt, input)
         else
             let mock_fun = "strtrans"
             let prompt = call(get(s:function_map, char, mock_fun), [prompt])
@@ -374,8 +378,14 @@ function! s:keypress_event_loop(prompt_text)
 endfunction
 
 
-function! s:update_prompt(prompt, char)
-    let prompt = a:prompt . a:char
+function! s:character_input_pending()
+    silent! let nr = getchar(1)
+    return nr != 0 && type(nr) == 0 && nr2char(nr) =~# '\p'
+endfunction
+
+
+function! s:update_prompt(prompt, input)
+    let prompt = a:prompt . a:input
     let query = s:parse_query(prompt)
     call s:filter_candidate_list(query)
     return prompt
