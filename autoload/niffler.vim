@@ -446,7 +446,6 @@ endfunction
 
 function! s:move_end_line(prompt)
     normal! g_
-    execute "normal!" winwidth(0)/3."zh"
     return a:prompt
 endfunction
 
