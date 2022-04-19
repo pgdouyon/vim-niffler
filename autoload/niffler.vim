@@ -172,8 +172,11 @@ endfunction
 function! s:open_file(selection) dict
     let save_wd = getcwd()
     call s:lchdir(self.working_directory)
-    let open_cmd = buflisted(a:selection) ? "buffer" : "edit"
-    execute "silent" open_cmd fnameescape(a:selection)
+    if buflisted(a:selection)
+        execute "silent buffer" bufnr(a:selection)
+    else
+        execute "silent edit" fnameescape(a:selection)
+    endif
     call s:lchdir(save_wd)
 endfunction
 
