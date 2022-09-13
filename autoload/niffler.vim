@@ -22,7 +22,7 @@ function! niffler#niffler(args)
     let candidate_list = s:find_files()
     let niffler_options = {"save_wd": save_wd, "sink": function("s:open_file"),
             \ "display_preprocessor": function("s:sort_by_mru")}
-    call s:niffler_setup(candidate_list, niffler_options)
+    call s:niffler_candidate_setup(candidate_list, niffler_options)
     call s:keypress_event_loop('Files')
 endfunction
 
@@ -30,7 +30,7 @@ endfunction
 function! niffler#mru()
     let niffler_options = {"sink": function("s:open_file")}
     call niffler#mru#update()
-    call s:niffler_setup(reverse(copy(niffler#mru#list())), niffler_options)
+    call s:niffler_candidate_setup(reverse(copy(niffler#mru#list())), niffler_options)
     call s:keypress_event_loop('Mru')
 endfunction
 
@@ -50,7 +50,7 @@ function! niffler#buffer()
     endtry
 
     let niffler_options = {"sink": function("s:open_file"), "display_preprocessor": function("s:sort_by_mru")}
-    call s:niffler_setup(buflist, niffler_options)
+    call s:niffler_candidate_setup(buflist, niffler_options)
     call s:keypress_event_loop('Buffers')
 endfunction
 
@@ -62,17 +62,15 @@ function! niffler#tags(use_current_buffer)
         return
     endif
     if a:use_current_buffer
-        let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist_current_buffer()
+        let s:setup_function = function("s:niffler_candidate_setup", s:tags_current_buffer_setup_params())
         let conceal_active = 0
         let save_hidden = &hidden
         set hidden
     else
-        let [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor] = s:taglist()
+        let s:setup_function = function("s:niffler_setup", s:tags_setup_params())
         let conceal_active = g:niffler_conceal_tags_fullpath
     endif
-    let niffler_options = {"sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
-            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
-    call s:niffler_setup(taglist, niffler_options)
+    call s:setup_function()
     call s:tag_conceal(conceal_active, 1)
     call s:keypress_event_loop('Tags')
     if exists("save_hidden")
@@ -81,21 +79,20 @@ function! niffler#tags(use_current_buffer)
 endfunction
 
 
-function! s:taglist()
-    let taglist = []
-    for tagfile in tagfiles()
-        let taglist += systemlist(printf("grep -v '^!_TAG_' %s", tagfile))
-    endfor
-
+function! s:tags_setup_params()
     let parse_tag_excmd = 'printf("/^\\s*\\V%s\\s\\*\\$", escape(matchstr(v:val, ''^\S*\s*.\{-\}\\\@<!\s\+\zs.*''), "/\\"))'
     let parse_tag_filename = 'substitute(matchstr(v:val, ''^\S*\s*\zs.\{-\}\ze\\\@<!\s''), "\\\\ ", " ", "g")'
     let display_preprocessor_fmt_string = 'systemlist("sed %s | cut -f1-3 | column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n")'
     let display_preprocessor = printf(display_preprocessor_fmt_string, s:sed_arguments())
-    return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
+
+    let niffler_options = {"sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename,
+            \ "exclude_patterns": ["^!_TAG_"]}
+    return [tagfiles(), niffler_options]
 endfunction
 
 
-function! s:taglist_current_buffer()
+function! s:tags_current_buffer_setup_params()
     let current_buffer = expand("%:p")
     let substitution_pattern = '\V' . escape(current_buffer, '\')
     let taglist = map(systemlist(printf("ctags --fields=kt -f - %s", current_buffer)), 'substitute(v:val, substitution_pattern, "", "g")')
@@ -104,7 +101,10 @@ function! s:taglist_current_buffer()
     let parse_tag_filename = string(expand("%:p"))
     let display_preprocessor_fmt_string = 'systemlist("sed -e ''%s'' | cut -f1,3 | column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n")'
     let display_preprocessor = printf(display_preprocessor_fmt_string, escape(s:trim_pattern_noise(), '"\'))
-    return [taglist, parse_tag_excmd, parse_tag_filename, display_preprocessor]
+
+    let niffler_options = {"sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
+            \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
+    return [taglist, niffler_options]
 endfunction
 
 
@@ -151,7 +151,7 @@ function! niffler#tselect(identifier)
     let display_preprocessor = 'split(system("column -s ''\t'' -t 2>/dev/null", join(v:val, "\n")."\n"), "\n")'
     let niffler_options = {"preview": 1, "sink": function("s:open_tag"), "display_preprocessor": display_preprocessor,
             \ "parse_tag_excmd": parse_tag_excmd, "parse_tag_filename": parse_tag_filename}
-    call s:niffler_setup(tselect_candidates, niffler_options)
+    call s:niffler_candidate_setup(tselect_candidates, niffler_options)
     call s:tag_conceal(g:niffler_conceal_tags_fullpath, 0)
     call s:keypress_event_loop('Tselect')
 endfunction
@@ -221,7 +221,7 @@ function! niffler#custom(args)
         let candidates = a:args.source()
     endif
     let niffler_options = extend(a:args, {"save_wd": save_wd})
-    call s:niffler_setup(candidates, niffler_options)
+    call s:niffler_candidate_setup(candidates, niffler_options)
     call s:keypress_event_loop(get(a:args, "prompt", ""))
 endfunction
 
@@ -277,12 +277,44 @@ function! s:filter_ignore_files(candidates)
 endfunction
 
 
-function! s:niffler_setup(candidate_list, options) abort
+function! s:dump_to_tempfile(candidate_list) abort
+    if type(a:candidate_list) != type([])
+        throw "Invalid argument type. Expected a list, received type: " . type(a:candidate_list)
+    endif
+
+    let tempname = tempname()
+    call writefile(a:candidate_list, tempname)
+    return tempname
+endfunction
+
+
+function! s:niffler_candidate_setup(candidate_list, options) abort
+    if empty(a:candidate_list)
+        call niffler#utils#echo_error("[Niffler] - No results found. Unable to create candidate list.")
+        call s:cleanup_window_state(a:options)
+    endif
+
+    try
+        let candidate_file = s:dump_to_tempfile(a:candidate_list)
+        let modified_options = {'tempfile': candidate_file}
+        call extend(modified_options, a:options)
+        call s:niffler_setup([candidate_file], modified_options)
+    catch
+        call niffler#utils#echo_error(substitute(v:exception, '^[^:]*:', '', ''))
+        call s:cleanup_window_state(a:options)
+    endtry
+endfunction
+
+
+function! s:niffler_setup(search_file_list, options) abort
     if !executable("grep")
         call niffler#utils#echo_error("[Niffler] - `grep` executable not found. Unable to filter candidate list.")
         call s:cleanup_window_state(a:options)
-    elseif empty(a:candidate_list)
+    elseif empty(filter(map(copy(a:search_file_list), 'getfsize(v:val)'), 'v:val > 0'))
         call niffler#utils#echo_error("[Niffler] - No results found. Unable to create candidate list.")
+        call s:cleanup_window_state(a:options)
+    elseif !empty(filter(copy(a:search_file_list), '!filereadable(v:val)'))
+        call niffler#utils#echo_error("[Niffler] - Candidate files not readable. Unable to create candidate list.")
         call s:cleanup_window_state(a:options)
     else
         try
@@ -291,13 +323,13 @@ function! s:niffler_setup(candidate_list, options) abort
             call s:set_niffler_cursorline()
             call niffler#mru#update()
             call extend(b:niffler, a:options)
-            let b:niffler.candidate_list_original = a:candidate_list
-            let b:niffler.candidate_list = a:candidate_list
+            let b:niffler.search_file_list = a:search_file_list
             let b:niffler.candidate_limit = winheight(0)
             let b:niffler.working_directory = getcwd()
             let b:niffler.marked_selections = []
             let b:niffler.isactive = 1
-            call s:display(a:candidate_list[0:b:niffler.candidate_limit - 1])
+            " Initialize candidate list with empty search query
+            call s:filter_candidate_list('')
         catch
             call niffler#utils#echo_error(substitute(v:exception, '^[^:]*:', '', ''))
             if exists("b:niffler") && has_key(b:niffler, "origin_buffer")
@@ -398,7 +430,7 @@ endfunction
 function! s:backspace(prompt)
     let prompt = a:prompt[0:-2]
     let query = s:parse_query(prompt)
-    let b:niffler.candidate_list = b:niffler.candidate_list_original
+    " let b:niffler.candidate_list = b:niffler.candidate_list_original
     call s:filter_candidate_list(query)
     return prompt
 endfunction
@@ -407,7 +439,7 @@ endfunction
 function! s:backward_kill_word(prompt)
     let prompt = matchstr(a:prompt, '.\{-\}\ze\S\+\s*$')
     let query = s:parse_query(prompt)
-    let b:niffler.candidate_list = b:niffler.candidate_list_original
+    " let b:niffler.candidate_list = b:niffler.candidate_list_original
     call s:filter_candidate_list(query)
     return prompt
 endfunction
@@ -415,7 +447,7 @@ endfunction
 
 function! s:backward_kill_line(prompt)
     let empty_prompt = ""
-    let b:niffler.candidate_list = b:niffler.candidate_list_original
+    " let b:niffler.candidate_list = b:niffler.candidate_list_original
     call s:filter_candidate_list(empty_prompt)
     return empty_prompt
 endfunction
@@ -521,6 +553,9 @@ function! s:close_niffler(...)
     call s:cleanup_buffer_state(niffler_options)
     call niffler#utils#try_visit(niffler_options.origin_buffer, "keepalt")
     call s:cleanup_window_state(niffler_options)
+    if has_key(niffler_options, 'tempfile') && getfsize(niffler_options.tempfile) > 0
+        call delete(niffler_options.tempfile)
+    endif
     redraw | echo
     " above command is needed because Vim leaves the prompt on screen when there are no buffers open
 endfunction
@@ -640,15 +675,13 @@ let s:function_map = {
 " ======================================================================
 
 function! s:filter_candidate_list(query)
-    if empty(b:niffler.candidate_list)
+    " if empty(b:niffler.candidate_list)
+    if empty(b:niffler.search_file_list)
         return
     endif
     let sanitized_query = s:sanitize_query(a:query)
-    let grep_cmd = s:translate_query_to_grep_cmd(sanitized_query)
-    silent! let candidate_list = systemlist(grep_cmd, b:niffler.candidate_list)
-    if len(candidate_list) < b:niffler.candidate_limit
-        let b:niffler.candidate_list = candidate_list
-    endif
+    silent! let candidate_list = systemlist(s:build_grep_command(sanitized_query))
+
     call s:display(candidate_list)
     call s:refresh_marks()
 endfunction
@@ -664,14 +697,25 @@ function! s:sanitize_query(query)
 endfunction
 
 
-function! s:translate_query_to_grep_cmd(query)
-    let search_terms = split(a:query)
-    let translator = 'printf("grep %s -e %s", (v:val =~# "\\u") ? "" : "-i", shellescape(v:val))'
-    let grep_filter_cmd = join(map(search_terms, translator), " | ")
-    let last_grep_regex = 'grep\ze [^|]*$'
-    let grep_cmd_restricted = printf("grep -m %s", b:niffler.candidate_limit)
-    let grep_filter_cmd_restricted = substitute(grep_filter_cmd, last_grep_regex, grep_cmd_restricted, '')
-    return grep_filter_cmd_restricted
+function! s:build_grep_command(query)
+    let search_terms = map(split(a:query), '{"exclusive": v:false, "term": v:val}')
+    let exclusive_terms = map(copy(get(b:niffler, 'exclude_patterns', [])), '{"exclusive": v:true, "term": v:val}')
+    let all_terms = search_terms + exclusive_terms
+    let all_terms[0].input_files = b:niffler.search_file_list
+    let all_terms[-1].max_count = b:niffler.candidate_limit
+    return join(map(all_terms, function('s:grep_command_mapper')), " | ")
+endfunction
+
+
+function! s:grep_command_mapper(key, cmd_parts)
+    let max_count = has_key(a:cmd_parts, 'max_count') ? printf('-m %s', a:cmd_parts.max_count) : ''
+    let ignorecase = (a:cmd_parts.term =~# '\u') ? '' : '-i'
+    let invert = a:cmd_parts.exclusive ? '-v' : ''
+    let pattern = printf('-e %s', shellescape(a:cmd_parts.term))
+    let input_files = has_key(a:cmd_parts, 'input_files') ? join(a:cmd_parts.input_files, ' ') : ''
+
+    let grep_cmd = ['grep', max_count, ignorecase, invert, pattern, input_files]
+    return join(filter(grep_cmd, '!empty(v:val)'), ' ')
 endfunction
 
 
@@ -703,6 +747,9 @@ function! s:sort_by_mru(candidate_list)
         let prefix_directory = escape(getcwd(), '\') . '/'
         let mru_candidate = substitute(file, '\V\^'.prefix_directory, '', '')
         if has_key(candidate_set, mru_candidate)
+            " candidate_list is modified in place so we can't use a reverse
+            " index to lookup the original index, need to iterate through the
+            " entire list to find the new index post-modification
             let index = index(a:candidate_list, mru_candidate)
             call insert(a:candidate_list, remove(a:candidate_list, index))
         endif
